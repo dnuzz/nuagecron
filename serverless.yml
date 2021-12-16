@@ -1,0 +1,79 @@
+service: nuagecron
+
+frameworkVersion: '2 || 3'
+
+custom:
+  tableName: 'users-table-${self:service}'
+  wsgi:
+    app: nuagecron.service.app.app
+
+provider:
+  name: aws
+  runtime: python3.8
+  lambdaHashingVersion: '20201221'
+  stage: dev
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [ SchedulesTable, Arn ]
+            - Fn::GetAtt: [ ExecutionsTable, Arn ]
+  environment:
+    SCHEDULES_TABLE: ${self:service}-schedules
+    EXECUTIONS_TABLE: ${self:service}-executions
+
+functions:
+  api:
+    handler: nuagecron.service.wsgi_handler.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: /{proxy+}
+          method: ANY
+
+plugins:
+  - serverless-wsgi
+  - serverless-python-requirements
+
+resources:
+  Resources:
+    SchedulesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: schedule_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: schedule_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-schedules
+    ExecutionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: schedule_id
+            AttributeType: S
+          - AttributeName: execution_time
+            AttributeType: 'N'
+        KeySchema:
+          - AttributeName: schedule_id
+            KeyType: HASH
+          - AttributeName: execution_time
+            KeyType: SORT
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-executions
