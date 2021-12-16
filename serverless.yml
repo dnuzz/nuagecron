@@ -3,7 +3,10 @@ service: nuagecron
 frameworkVersion: '2 || 3'
 
 custom:
-  tableName: 'users-table-${self:service}'
+  pythonRequirements:
+    usePoetry: true
+    dockerizePip: true
+    dockerfile: Dockerfile
   wsgi:
     app: nuagecron.service.app.app
 
@@ -72,7 +75,7 @@ resources:
           - AttributeName: schedule_id
             KeyType: HASH
           - AttributeName: execution_time
-            KeyType: SORT
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
