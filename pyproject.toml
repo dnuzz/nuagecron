@@ -9,6 +9,7 @@ packages = [
     { include = "cli", from = "nuagecron" },
     { include = "domain", from = "nuagecron" }
 ]
+include = ["nuagecron/__init__.py", "nuagecron/servicename.json"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
