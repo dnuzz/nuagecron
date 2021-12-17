@@ -3,12 +3,14 @@ service: nuagecron
 frameworkVersion: '2 || 3'
 
 custom:
+  servicename: ${file(./nuagecron/servicename.json):servicename} 
   pythonRequirements:
     usePoetry: true
     dockerizePip: true
     dockerfile: Dockerfile
   wsgi:
     app: nuagecron.service.app.app
+    packRequirements: false
 
 provider:
   name: aws
@@ -43,6 +45,10 @@ functions:
       - http:
           path: /{proxy+}
           method: ANY
+  tick:
+    handler: nuagecron.domain.lambdas.tick.handler
+    events:
+      - schedule: rate(2 hours)
 
 plugins:
   - serverless-wsgi

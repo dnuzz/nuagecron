@@ -5,6 +5,10 @@ description = "A multi-tenant serverless scheduler"
 authors = ["Your Name <you@example.com>"]
 license = "MIT License"
 
+packages = [
+    { include = "cli", from = "nuagecron" }
+]
+
 [tool.poetry.dependencies]
 python = "^3.8"
 pydantic = "^1.8.2"
@@ -14,6 +18,7 @@ pynamodb = "^5.1.0"
 Flask = "^2.0.2"
 crontab = "^0.23.0"
 pip = "^21.3.1"
+Werkzeug = "^2.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -22,3 +27,6 @@ mypy = "^0.920"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+nuagecron = "nuagecron.cli.cli:main"

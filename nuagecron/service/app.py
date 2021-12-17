@@ -14,13 +14,13 @@ if os.environ.get('IS_OFFLINE'):
     )
 
 
-USERS_TABLE = os.environ['USERS_TABLE']
+SCHEDULES_TABLE = os.environ['SCHEDULES_TABLE']
 
 
 @app.route('/users/<string:user_id>')
 def get_user(user_id):
     result = dynamodb_client.get_item(
-        TableName=USERS_TABLE, Key={'userId': {'S': user_id}}
+        TableName=SCHEDULES_TABLE, Key={'userId': {'S': user_id}}
     )
     item = result.get('Item')
     if not item:
@@ -39,7 +39,7 @@ def create_user():
         return jsonify({'error': 'Please provide both "userId" and "name"'}), 400
 
     dynamodb_client.put_item(
-        TableName=USERS_TABLE, Item={'userId': {'S': user_id}, 'name': {'S': name}}
+        TableName=SCHEDULES_TABLE, Item={'schedule_id': {'S': user_id}, 'name': {'S': name}}
     )
 
     return jsonify({'userId': user_id, 'name': name})
