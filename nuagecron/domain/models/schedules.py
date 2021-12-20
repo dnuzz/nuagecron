@@ -28,8 +28,6 @@ class Schedule(BaseModel):
 
     @root_validator(pre=True)
     def root_validation(cls, values):
-        values['next_run'] = get_next_runtime(values['cron'])
+        values['next_run'] = get_next_runtime(values['cron']).timestamp()
         values['schedule_id'] = get_schedule_id(values['name'], values['project_stack'])
         return values
-
-Schedule(name='a',project_stack='b',cron='0 * * * *', executor = 'LambdaExecutor', payload={'lambda_name': 'a'})
