@@ -4,8 +4,8 @@ from typing import List
 from nuagecron.domain.models.schedules import Schedule
 from nuagecron.domain.models.executions import Execution
 
-class BaseDBAdapter(ABC):
 
+class BaseDBAdapter(ABC):
     @abstractmethod
     def get_schedule(self, schedule_id: str) -> Schedule:
         raise NotImplementedError()

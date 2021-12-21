@@ -8,5 +8,6 @@ import boto3
 def get_compute_adapter() -> BaseComputeAdapter:
     return AWSComputeAdapter()
 
+
 def get_db_adapter() -> BaseDBAdapter:
     return DynamoDbAdapter()

@@ -3,98 +3,100 @@ from pydantic import BaseModel
 from datetime import datetime
 from pynamodb.models import Model
 import boto3
-from pynamodb.attributes import DynamicMapAttribute, UTCDateTimeAttribute, UnicodeAttribute, NumberAttribute, JSONAttribute, BooleanAttribute, UnicodeSetAttribute
+from pynamodb.attributes import (
+    DynamicMapAttribute,
+    UTCDateTimeAttribute,
+    UnicodeAttribute,
+    NumberAttribute,
+    JSONAttribute,
+    BooleanAttribute,
+    UnicodeSetAttribute,
+)
 
 from nuagecron.service.db_adapters.base_adapter import BaseDBAdapter
 from nuagecron.domain.models.schedules import Schedule
 from nuagecron.domain.models.executions import Execution
 
+
 def type_to_dynamo_type(attribute: Any):
     if not attribute:
-        return 'NULL'
+        return "NULL"
     if isinstance(attribute, float) or isinstance(attribute, int):
-        return 'N'
+        return "N"
     if isinstance(attribute, str) or isinstance(attribute, datetime):
-        return 'S'
+        return "S"
     if isinstance(attribute, dict):
-        return 'M'
+        return "M"
     if isinstance(attribute, set):
         if isinstance(attribute[0], float) or isinstance(attribute[0], int):
-            return 'NS'
+            return "NS"
         elif isinstance(attribute[0], str):
-            return 'SS'
+            return "SS"
     if isinstance(attribute, bool):
-        return 'BOOL'
+        return "BOOL"
     if isinstance(attribute, list):
-        return 'L'
-    raise ValueError(f'Could not coerce {attribute} to a DynamoDB type')
+        return "L"
+    raise ValueError(f"Could not coerce {attribute} to a DynamoDB type")
+
 
 def dictionary_to_dynamo(a_dict: dict):
     dynamo_obj = {}
-    for k,v in  a_dict.items():
+    for k, v in a_dict.items():
         ddb_type = type_to_dynamo_type(v)
-        if ddb_type == 'M':
+        if ddb_type == "M":
             a_val = dictionary_to_dynamo(v)
-        if ddb_type == 'L':
-            a_val = [ {type_to_dynamo_type(x): x for x in a_val.items()}]
+        if ddb_type == "L":
+            a_val = [{type_to_dynamo_type(x): x for x in a_val.items()}]
         else:
             a_val = v
         dynamo_obj[k] = {ddb_type: a_val}
     return dynamo_obj
 
+
 def model_to_dynamo(model: BaseModel):
     return dictionary_to_dynamo(model.dict())
 
-class DynamoDbAdapter(BaseDBAdapter):
 
+class DynamoDbAdapter(BaseDBAdapter):
     def __init__(self):
-        self.dynamodb_client = boto3.client('dynamodb')
+        self.dynamodb_client = boto3.client("dynamodb")
 
     def _get_object(self, table: str, hash_key: Any, range_key: Any = None):
         self.dynamodb_client.get_item()
 
-    
     def get_schedule(self, schedule_id: str) -> Schedule:
         raise NotImplementedError()
 
-    
     def get_schedules_to_run(self) -> List[Schedule]:
         raise NotImplementedError()
 
-    
     def put_schedule(self, schedule: Schedule):
         raise NotImplementedError()
 
-    
     def update_schedule(self, update: dict):
         raise NotImplementedError()
 
-    
     def delete_schedule(self, schedule_id: str):
         raise NotImplementedError()
 
-    
     def get_execution_by_id(self, execution_id: str) -> Execution:
         raise NotImplementedError()
 
-    
     def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
         raise NotImplementedError()
 
-    
     def update_execution(self, update: dict):
         raise NotImplementedError()
 
-    
     def put_execution(self, execution: Execution):
         raise NotImplementedError()
 
-    
     def delete_execution(self, execution: Execution):
         raise NotImplementedError()
 
 
 # Just ignore below here for now TODO
+
 
 class ExecutionHistoryAttribute(UnicodeSetAttribute):
     def element_serialize(self, value: dict):
@@ -105,11 +107,11 @@ class ExecutionHistoryAttribute(UnicodeSetAttribute):
         :return:
         """
         for k, v in value.items():
-            return f'{k}:{v}'
+            return f"{k}:{v}"
 
     def element_deserialize(self, value: str):
         if value:
-            value_parts = value.split(':')
+            value_parts = value.split(":")
             return {int(value_parts[0]): value_parts[1]}
         return None
 
@@ -141,11 +143,9 @@ class Schedule(Model):
     execution_history = ExecutionHistoryAttribute()
 
 
-
 class Execution(Model):
-
     class Meta:
-        extra = 'allow'
+        extra = "allow"
 
     schedule_id: str
     execution_time: int
