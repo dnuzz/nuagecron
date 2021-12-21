@@ -1,1 +1,1 @@
-{"servicename":"nuagecron"}
+{"servicename":"nuagecron", "cloud_provider": "AWS"}

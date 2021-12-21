@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from pydantic import BaseModel
 from datetime import datetime
 from pynamodb.models import Model
@@ -6,6 +6,8 @@ import boto3
 from pynamodb.attributes import DynamicMapAttribute, UTCDateTimeAttribute, UnicodeAttribute, NumberAttribute, JSONAttribute, BooleanAttribute, UnicodeSetAttribute
 
 from nuagecron.service.db_adapters.base_adapter import BaseDBAdapter
+from nuagecron.domain.models.schedules import Schedule
+from nuagecron.domain.models.executions import Execution
 
 def type_to_dynamo_type(attribute: Any):
     if not attribute:
@@ -48,8 +50,48 @@ class DynamoDbAdapter(BaseDBAdapter):
     def __init__(self):
         self.dynamodb_client = boto3.client('dynamodb')
 
-    def get_object(self, table: str, hash_key: Any, range_key: Any = None):
+    def _get_object(self, table: str, hash_key: Any, range_key: Any = None):
         self.dynamodb_client.get_item()
+
+    
+    def get_schedule(self, schedule_id: str) -> Schedule:
+        raise NotImplementedError()
+
+    
+    def get_schedules_to_run(self) -> List[Schedule]:
+        raise NotImplementedError()
+
+    
+    def put_schedule(self, schedule: Schedule):
+        raise NotImplementedError()
+
+    
+    def update_schedule(self, update: dict):
+        raise NotImplementedError()
+
+    
+    def delete_schedule(self, schedule_id: str):
+        raise NotImplementedError()
+
+    
+    def get_execution_by_id(self, execution_id: str) -> Execution:
+        raise NotImplementedError()
+
+    
+    def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
+        raise NotImplementedError()
+
+    
+    def update_execution(self, update: dict):
+        raise NotImplementedError()
+
+    
+    def put_execution(self, execution: Execution):
+        raise NotImplementedError()
+
+    
+    def delete_execution(self, execution: Execution):
+        raise NotImplementedError()
 
 
 # Just ignore below here for now TODO

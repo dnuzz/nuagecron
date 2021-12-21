@@ -19,7 +19,7 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_schedule(self, schedule: Schedule):
+    def update_schedule(self, update: dict):
         raise NotImplementedError()
 
     @abstractmethod
@@ -35,7 +35,7 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_execution(self, execution: Execution):
+    def update_execution(self, update: dict):
         raise NotImplementedError()
 
     @abstractmethod
