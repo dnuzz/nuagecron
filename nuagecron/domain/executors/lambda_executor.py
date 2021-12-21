@@ -1,25 +1,35 @@
+from typing import Tuple
 from nuagecron.domain.executors.base_executor import BaseExecutor
+from nuagecron.domain.models.executions import ExecutionStatus
 
 
 class LambdaExecutor(BaseExecutor):
     class PayloadValidation(BaseExecutor.PayloadValidation):
         lambda_name: str
 
+    """
+    This should be called on creation of a schedule to ensure that any resources are available that the executor needs. (Deploy time validation)
+    """
+
     def validate(self):
         raise NotImplementedError()
 
     """
-    This should validate the params to the best of it's ability using the payload
+    This should prepare the parameters and store them locally for a run that will happen immedaitely after. This can include expanding templates.
     """
 
     def prepare(self):
         raise NotImplementedError()
 
     """
-    This should set the invoke_time and the execution_id on the execution object
+    This should set the invoke_time and the execution_id on the execution object as well as perform the actions requested. It should return an Optional execution_id for tracking purposes and the state the execution is in
     """
 
-    def execute(self):  # This should set the invoke time and the execution_id
+    def execute(
+        self,
+    ) -> Tuple[
+        str, ExecutionStatus
+    ]:  # This should set the invoke time and the execution_id
         raise NotImplementedError()
 
     """

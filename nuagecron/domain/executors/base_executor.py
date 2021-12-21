@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Tuple
 from pydantic import BaseModel
-from nuagecron.domain.models.executions import Execution
+from nuagecron.domain.models.executions import Execution, ExecutionStatus
 
 
 class BaseExecutor(ABC, BaseModel):
@@ -32,7 +33,11 @@ class BaseExecutor(ABC, BaseModel):
     """
 
     @abstractmethod
-    def execute(self):  # This should set the invoke time and the execution_id
+    def execute(
+        self,
+    ) -> Tuple[
+        str, ExecutionStatus
+    ]:  # This should set the invoke time and the execution_id
         raise NotImplementedError()
 
     """

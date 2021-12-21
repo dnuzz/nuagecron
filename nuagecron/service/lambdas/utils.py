@@ -1,6 +1,6 @@
 from nuagecron.service.db_adapters.base_adapter import BaseDBAdapter
 from nuagecron.service.db_adapters.dynamodb_adapter import DynamoDbAdapter
-from nuagecron.service.compute_adapters.aws_compute_adapter import BaseComputeAdapter
+from nuagecron.service.compute_adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.service.compute_adapters.aws_compute_adapter import AWSComputeAdapter
 import boto3
 

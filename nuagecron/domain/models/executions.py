@@ -19,6 +19,7 @@ class Execution(BaseModel):
     schedule_id: str
     execution_time: int
     payload: dict
+    executor: str
     invoke_time: Optional[datetime]
     update_time: Optional[datetime]
     execution_id: Optional[str]

@@ -73,7 +73,7 @@ class DynamoDbAdapter(BaseDBAdapter):
     def put_schedule(self, schedule: Schedule):
         raise NotImplementedError()
 
-    def update_schedule(self, update: dict):
+    def update_schedule(self, schedule_id: str, update: dict):
         raise NotImplementedError()
 
     def delete_schedule(self, schedule_id: str):
@@ -85,7 +85,7 @@ class DynamoDbAdapter(BaseDBAdapter):
     def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
         raise NotImplementedError()
 
-    def update_execution(self, update: dict):
+    def update_execution(self, schedule_id: str, execution_time: int, update: dict):
         raise NotImplementedError()
 
     def put_execution(self, execution: Execution):

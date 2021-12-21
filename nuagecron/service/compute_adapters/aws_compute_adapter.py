@@ -1,5 +1,5 @@
 from typing import Optional
-from nuagecron.service.compute_adapters.base_function_adapter import BaseComputeAdapter
+from nuagecron.service.compute_adapters.base_compute_adapter import BaseComputeAdapter
 
 
 class AWSComputeAdapter(BaseComputeAdapter):
