@@ -19,3 +19,4 @@ def lambda_handler(payload: Any, context: Any):
     db_adapter.update_execution(
         schedule_id, execution_time, {"execution_id": execution_id, "status": status}
     )
+    # TODO update the exection_history in the schedule object

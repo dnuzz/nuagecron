@@ -16,9 +16,10 @@ class Schedule(BaseModel):
     cron: str
     next_run: int
     executor: str
+    concurrent_runs: int = 1  # -1 is infinite, 0 is block till ready, =<1 is skipping
     overrides_applied: bool = False
     metadata: Optional[dict]
-    execution_history: Optional[Dict[float, ExecutionStatus]]
+    execution_history: Optional[Dict[int, ExecutionStatus]]
 
     @validator("executor")
     def executor_name_validator(cls, v):

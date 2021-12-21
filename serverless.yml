@@ -32,8 +32,8 @@ provider:
             - Fn::GetAtt: [ SchedulesTable, Arn ]
             - Fn::GetAtt: [ ExecutionsTable, Arn ]
   environment:
-    SCHEDULES_TABLE: ${self:service}-schedules
-    EXECUTIONS_TABLE: ${self:service}-executions
+    SCHEDULES_TABLE: ${self:custom.servicename}-schedules
+    EXECUTIONS_TABLE: ${self:custom.servicename}-executions
 
 functions:
   api:
@@ -66,7 +66,7 @@ resources:
           - AttributeName: schedule_id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:service}-schedules
+        TableName: ${self:custom.servicename}-schedules
     ExecutionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -81,4 +81,4 @@ resources:
           - AttributeName: execution_time
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:service}-executions
+        TableName: ${self:custom.servicename}-executions

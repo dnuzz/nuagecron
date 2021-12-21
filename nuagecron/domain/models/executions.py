@@ -10,6 +10,7 @@ class ExecutionStatus(str, Enum):
     running = "running"
     failed = "failed"
     timed_out = "timed_out"
+    killed = "killed"
 
 
 class Execution(BaseModel):
@@ -24,3 +25,4 @@ class Execution(BaseModel):
     update_time: Optional[datetime]
     execution_id: Optional[str]
     status: ExecutionStatus
+    log_link: Optional[str]
