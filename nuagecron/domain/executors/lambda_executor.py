@@ -36,7 +36,7 @@ class LambdaExecutor(BaseExecutor):
     When an update is passed to this it should update the execution and the update_time attributes
     """
 
-    def process_update(self, update: dict):
+    def process_update(self, update: dict) -> dict:
         raise NotImplementedError()
 
     """

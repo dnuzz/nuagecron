@@ -45,7 +45,7 @@ class BaseExecutor(ABC, BaseModel):
     """
 
     @abstractmethod
-    def process_update(self, update: dict):
+    def process_update(self, update: dict) -> dict:
         raise NotImplementedError()
 
     """

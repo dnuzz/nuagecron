@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from nuagecron.domain.models.schedules import Schedule
 from nuagecron.domain.models.executions import Execution
@@ -27,7 +27,7 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_execution_by_id(self, execution_id: str) -> Execution:
+    def get_execution_by_id(self, execution_id: str) -> Optional[Execution]:
         raise NotImplementedError()
 
     @abstractmethod

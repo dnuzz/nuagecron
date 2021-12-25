@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from pynamodb.models import Model
@@ -79,7 +79,7 @@ class DynamoDbAdapter(BaseDBAdapter):
     def delete_schedule(self, schedule_id: str):
         raise NotImplementedError()
 
-    def get_execution_by_id(self, execution_id: str) -> Execution:
+    def get_execution_by_id(self, execution_id: str) -> Optional[Execution]:
         raise NotImplementedError()
 
     def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
