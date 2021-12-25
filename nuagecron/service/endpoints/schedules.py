@@ -1,8 +1,8 @@
-def create_schedule():
+def create_schedule(payload: dict):
     pass
 
 
-def upsert_schedule_set():
+def upsert_schedule_set(payload: dict):
     pass
 
 

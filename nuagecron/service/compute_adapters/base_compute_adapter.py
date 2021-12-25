@@ -6,7 +6,7 @@ class BaseComputeAdapter(ABC):
     @abstractclassmethod
     def invoke_function(
         self, function_name: str, payload: dict, sync: bool = True, timeout: int = None
-    ) -> Optional[str]:
+    ) -> dict:
         raise NotImplementedError()
 
     @abstractclassmethod

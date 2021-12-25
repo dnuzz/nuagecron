@@ -46,9 +46,16 @@ functions:
           path: /{proxy+}
           method: ANY
   tick:
-    handler: nuagecron.domain.lambdas.tick.handler
+    name: ${self:custom.servicename}-tick
+    handler: nuagecron.service.lambdas.tick.lambda_handler
     events:
       - schedule: rate(2 hours)
+  executor:
+    name: ${self:custom.servicename}-executor
+    handler: nuagecron.service.lambdas.executor.lambda_handler
+  updater:
+    name: ${self:custom.servicename}-updater
+    handler: nuagecron.service.lambdas.updater.lambda_handler
 
 plugins:
   - serverless-wsgi
