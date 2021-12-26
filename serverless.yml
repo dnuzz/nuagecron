@@ -69,11 +69,32 @@ resources:
         AttributeDefinitions:
           - AttributeName: schedule_id
             AttributeType: S
+          - AttributeName: enabled
+            AttributeType: S
+          - AttributeName: next_run
+            AttributeType: 'N'
+          - AttributeName: project_stack
+            AttributeType: S
         KeySchema:
           - AttributeName: schedule_id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.servicename}-schedules
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:custom.servicename}-schedules-enabled
+            KeySchema:
+              - AttributeName: enabled
+                KeyType: HASH
+              - AttributeName: next_run
+                KeyType: RANGE
+            Projection:
+              ProjectionType: 'ALL'
+          - IndexName: ${self:custom.servicename}-schedules-project-stack
+            KeySchema:
+              - AttributeName: project_stack
+                KeyType: HASH
+            Projection:
+              ProjectionType: 'KEYS ONLY'
     ExecutionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -82,6 +103,8 @@ resources:
             AttributeType: S
           - AttributeName: execution_time
             AttributeType: 'N'
+          - AttributeName: execution_id
+            AttributeType: S
         KeySchema:
           - AttributeName: schedule_id
             KeyType: HASH
@@ -89,3 +112,10 @@ resources:
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.servicename}-executions
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:custom.servicename}-executions-execution-id
+            KeySchema:
+              - AttributeName: execution_id
+                KeyType: HASH
+            Projection:
+              ProjectionType: 'KEYS ONLY'

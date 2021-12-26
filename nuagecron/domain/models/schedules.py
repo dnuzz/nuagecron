@@ -20,6 +20,7 @@ class Schedule(BaseModel):
     overrides_applied: bool = False
     metadata: Optional[dict]
     execution_history: Optional[Dict[int, ExecutionStatus]]
+    enabled: Optional[bool] = True
 
     @validator("executor")
     def executor_name_validator(cls, v):

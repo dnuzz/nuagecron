@@ -11,7 +11,7 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_schedules_to_run(self) -> List[Schedule]:
+    def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -35,13 +35,13 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def get_executions(self, schedule_id: str, count: int = 100) -> List[Execution]:
+        raise NotImplementedError()
+
+    @abstractmethod
     def update_execution(self, schedule_id: str, execution_time: int, update: dict):
         raise NotImplementedError()
 
     @abstractmethod
     def put_execution(self, execution: Execution):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def delete_execution(self, execution: Execution):
         raise NotImplementedError()
