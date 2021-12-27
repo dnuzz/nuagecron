@@ -22,7 +22,10 @@ def lambda_handler(payload: Any, Context: Any):
             db_adapter.put_execution(new_execution)
             compute_adapter.invoke_function(
                 f"{SERVICE_NAME}-executor",
-                {"schedule_id": schedule.schedule_id, "execution_time": schedule.next_run},
+                {
+                    "schedule_id": schedule.schedule_id,
+                    "execution_time": schedule.next_run,
+                },
                 sync=False,
             )
             schedule.next_run = int(get_next_runtime(schedule.cron).timestamp())
@@ -33,4 +36,3 @@ def lambda_handler(payload: Any, Context: Any):
             if time() - start_time > timeout:
                 return
         ready_schedules = db_adapter.get_schedules_to_run()
-        

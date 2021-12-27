@@ -12,46 +12,41 @@ class BaseExecutor(ABC, BaseModel):
         self.execution: Execution = execution
         self.payload: dict = self.PayloadValidation(**self.execution.payload).dict()
 
-    """
-    This should validate the params to the best of it's ability using the payload
-    """
-
     @abstractmethod
     def validate(self):
-        raise NotImplementedError()
 
-    """
-    This should prepare variables for runtime
-    """
+        """
+        This should validate the params to the best of it's ability using the payload
+        """
+        raise NotImplementedError()
 
     @abstractmethod
     def prepare(self):
+        """
+        This should prepare variables for runtime and store locally
+        """
         raise NotImplementedError()
-
-    """
-    This should set the invoke_time and the execution_id on the execution object
-    """
 
     @abstractmethod
     def execute(
         self,
-    ) -> Tuple[
-        str, ExecutionStatus
-    ]:  # This should set the invoke time and the execution_id
+    ) -> Tuple[str, ExecutionStatus]:
+        """
+        This should set the invoke_time and the execution_id on the execution object
+        """
         raise NotImplementedError()
-
-    """
-    When an update is passed to this it should update the execution and the update_time attributes
-    """
 
     @abstractmethod
     def process_update(self, update: dict) -> dict:
+        """
+        This should take in an update dictionary from a source specific to this executor
+        and return a dictionary that represents the new/ updated attributes for the execution
+        """
         raise NotImplementedError()
-
-    """
-    This should attempt to kill the running execution and return whether that was successful or not
-    """
 
     @abstractmethod
     def try_kill(self) -> bool:
+        """
+        This should attempt to kill the running execution and return whether that was successful or not
+        """
         raise NotImplementedError()

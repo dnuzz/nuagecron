@@ -29,7 +29,7 @@ class LambdaExecutor(BaseExecutor):
         self,
     ) -> Tuple[
         str, ExecutionStatus
-    ]:  # This should set the invoke time and the execution_id
+    ]:  # This should return the execution_id and ExecutionStatus
         raise NotImplementedError()
 
     """
