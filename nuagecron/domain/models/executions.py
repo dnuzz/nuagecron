@@ -11,6 +11,7 @@ class ExecutionStatus(str, Enum):
     failed = "failed"
     timed_out = "timed_out"
     killed = "killed"
+    internal_error = 'internal_error'
 
 
 class Execution(BaseModel):

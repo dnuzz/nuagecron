@@ -11,6 +11,6 @@ class BaseComputeAdapter(ABC):
 
     @abstractclassmethod
     def invoke_container(
-        self, container_name: str, payload: dict, sync: bool = True, timeout: int = None
+        self, container_name: str, payload: dict, timeout: int = None
     ) -> Optional[str]:
         raise NotImplementedError()

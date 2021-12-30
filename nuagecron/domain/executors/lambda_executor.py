@@ -28,7 +28,7 @@ class LambdaExecutor(BaseExecutor):
     def execute(
         self,
     ) -> Tuple[
-        str, ExecutionStatus
+        dict, ExecutionStatus
     ]:  # This should return the execution_id and ExecutionStatus
         raise NotImplementedError()
 

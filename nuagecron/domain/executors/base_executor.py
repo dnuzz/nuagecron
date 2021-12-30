@@ -23,16 +23,16 @@ class BaseExecutor(ABC, BaseModel):
     @abstractmethod
     def prepare(self):
         """
-        This should prepare variables for runtime and store locally
+        This should prepare variables for runtime and store within the executor instance for the execute call
         """
         raise NotImplementedError()
 
     @abstractmethod
     def execute(
         self,
-    ) -> Tuple[str, ExecutionStatus]:
+    ) -> Tuple[dict, ExecutionStatus]:
         """
-        This should set the invoke_time and the execution_id on the execution object
+        This should execute the contents and return both an execution status and any attribute updated that need to be performed
         """
         raise NotImplementedError()
 
