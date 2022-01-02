@@ -1,5 +1,5 @@
-from os import path, environ
 import json
+from os import environ, path
 
 SERVICE_NAME = environ.get(
     "NUAGECRON_SERVICE_NAME",

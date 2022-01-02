@@ -1,4 +1,5 @@
 from typing import Tuple
+
 from nuagecron.domain.executors.base_executor import BaseExecutor
 from nuagecron.domain.models.executions import ExecutionStatus
 

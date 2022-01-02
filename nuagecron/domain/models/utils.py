@@ -1,6 +1,7 @@
-from crontab import CronTab
-import crontab
 from datetime import datetime
+
+import crontab
+from crontab import CronTab
 
 
 def get_next_runtime(cron: str) -> datetime:

@@ -1,16 +1,17 @@
-from typing import Any
-from nuagecron import SERVICE_NAME
-from nuagecron.domain.models.executions import Execution, ExecutionStatus
-from nuagecron.service.lambdas.utils import get_compute_adapter, get_db_adapter
-from nuagecron.domain.utils.utils import get_next_runtime
 from time import time
+from typing import Any
+
+from nuagecron import SERVICE_NAME
+from nuagecron.domain.adapters.utils import get_compute_adapter, get_db_adapter
+from nuagecron.domain.models.executions import Execution, ExecutionStatus
+from nuagecron.domain.models.utils import get_next_runtime
 
 
-def lambda_handler(payload: Any, Context: Any):
+def main():
+    compute_adapter = get_compute_adapter()
+    db_adapter = get_db_adapter()
     start_time = time()
     timeout = 60 * 14  # about 14 minutes
-    db_adapter = get_db_adapter()
-    compute_adapter = get_compute_adapter()
     ready_schedules = db_adapter.get_schedules_to_run()
     while ready_schedules:
         for schedule in ready_schedules:

@@ -58,6 +58,7 @@ def handler(event, context):
     if "_serverless-wsgi" in event:
         import shlex
         import subprocess
+
         from werkzeug._compat import StringIO, to_native
 
         native_stdout = sys.stdout

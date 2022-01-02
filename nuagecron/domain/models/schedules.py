@@ -1,8 +1,10 @@
-from typing import Literal, Optional, Dict
-from pydantic import BaseModel, validator, root_validator, constr
-from nuagecron.domain.models.executions import ExecutionStatus
+from typing import Dict, Literal, Optional
+
+from pydantic import BaseModel, constr, root_validator, validator
+
 from nuagecron.domain.executors.base_executor import BaseExecutor
-from nuagecron.domain.utils.utils import get_next_runtime, get_schedule_id
+from nuagecron.domain.models.executions import ExecutionStatus
+from nuagecron.domain.models.utils import get_next_runtime, get_schedule_id
 
 VALID_EXECUTORS = [cls.__name__ for cls in BaseExecutor.__subclasses__()]
 

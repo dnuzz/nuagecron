@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
+
 from pydantic import BaseModel
+
 from nuagecron.domain.models.executions import Execution, ExecutionStatus
 
 

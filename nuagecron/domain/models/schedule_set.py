@@ -1,5 +1,7 @@
-from typing import Optional, Dict
-from pydantic import BaseModel, validator, root_validator
+from typing import Dict, Optional
+
+from pydantic import BaseModel, root_validator, validator
+
 from nuagecron.domain.models.schedules import Schedule
 
 

@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class ExecutionStatus(str, Enum):
@@ -11,7 +12,7 @@ class ExecutionStatus(str, Enum):
     failed = "failed"
     timed_out = "timed_out"
     killed = "killed"
-    internal_error = 'internal_error'
+    internal_error = "internal_error"
 
 
 class Execution(BaseModel):

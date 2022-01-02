@@ -1,14 +1,16 @@
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+import json
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import boto3
-
-from nuagecron.service.db_adapters.base_adapter import BaseDBAdapter
-from nuagecron.domain.models.schedules import Schedule
-from nuagecron.domain.models.executions import Execution
-from nuagecron import SERVICE_NAME
-
 from dynamodb_json import json_util
+from pydantic import BaseModel
+
+from nuagecron import SERVICE_NAME
+from nuagecron.domain.adapters.base_compute_adapter import BaseComputeAdapter
+from nuagecron.domain.adapters.base_database_adapter import BaseDBAdapter
+from nuagecron.domain.models.executions import Execution
+from nuagecron.domain.models.schedules import Schedule
 
 
 def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
@@ -156,3 +158,47 @@ class DynamoDbAdapter(BaseDBAdapter):
         self.dynamodb_client.put_item(
             TableName=EXECUTION_TABLE_NAME, Item=model_to_dynamo(execution)
         )
+
+
+LAMBDA_CLIENT = boto3.client("lambda")
+FARGATE_CLIENT = boto3.client("fargate")
+
+
+class AWSComputeAdapter(BaseComputeAdapter):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def invoke_function(
+        self, function_name: str, payload: dict, sync: bool = True, timeout: int = None
+    ) -> dict:
+        payload_str = str.encode(json.dumps(payload, default=str))
+        if sync:
+            invoke_type = "RequestResponse"
+        else:
+            invoke_type = "Event"
+        response = LAMBDA_CLIENT.invoke(
+            FunctionName=function_name,
+            Payload=payload_str,
+            InvocationType=invoke_type,
+            LogType="Tail",
+        )
+        returned_payload = response["Payload"].read().decode()
+        if response["ResponseMetadata"]["HTTPStatusCode"] > 299:
+            raise Exception(
+                f"Lambda Invoke failed: {response}\n\nPayload: {returned_payload}"
+            )
+        if sync:
+            try:
+                returned_payload_dict = json.loads(returned_payload)
+            except:
+                print(f"Could not load Payload as JSON: {returned_payload}")
+                return returned_payload
+            if "errorMessage" in returned_payload_dict:
+                raise Exception(returned_payload_dict)
+        else:
+            return response["ResponseMetadata"]["RequestId"]
+
+    def invoke_container(
+        self, container_name: str, payload: dict, sync: bool = True, timeout: int = None
+    ) -> Optional[str]:
+        raise NotImplementedError()
