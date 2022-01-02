@@ -9,7 +9,7 @@ custom:
     dockerizePip: true
     dockerfile: Dockerfile
   wsgi:
-    app: nuagecron.service.app.app
+    app: nuagecron.api.app.app
     packRequirements: false
 
 provider:
@@ -37,7 +37,7 @@ provider:
 
 functions:
   api:
-    handler: nuagecron.service.wsgi_handler.handler
+    handler: nuagecron.api.wsgi_handler.handler
     events:
       - http:
           path: /
@@ -47,15 +47,15 @@ functions:
           method: ANY
   tick:
     name: ${self:custom.servicename}-tick
-    handler: nuagecron.service.lambdas.tick.lambda_handler
+    handler: nuagecron.api.lambdas.tick.lambda_handler
     events:
       - schedule: rate(2 hours)
   executor:
     name: ${self:custom.servicename}-executor
-    handler: nuagecron.service.lambdas.executor.lambda_handler
+    handler: nuagecron.api.lambdas.executor.lambda_handler
   updater:
     name: ${self:custom.servicename}-updater
-    handler: nuagecron.service.lambdas.updater.lambda_handler
+    handler: nuagecron.api.lambdas.updater.lambda_handler
 
 plugins:
   - serverless-wsgi
