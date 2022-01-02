@@ -7,10 +7,10 @@ from dynamodb_json import json_util
 from pydantic import BaseModel
 
 from nuagecron import SERVICE_NAME
-from nuagecron.domain.adapters.base_compute_adapter import BaseComputeAdapter
-from nuagecron.domain.adapters.base_database_adapter import BaseDBAdapter
-from nuagecron.domain.models.executions import Execution
-from nuagecron.domain.models.schedules import Schedule
+from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
+from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
+from nuagecron.core.models.executions import Execution
+from nuagecron.core.models.schedules import Schedule
 
 
 def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:

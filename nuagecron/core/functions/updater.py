@@ -1,7 +1,7 @@
 from typing import Any
 
-from nuagecron.domain.adapters.utils import get_db_adapter
-from nuagecron.domain.executors.base_executor import BaseExecutor
+from nuagecron.core.adapters.utils import get_db_adapter
+from nuagecron.core.executors.base_executor import BaseExecutor
 
 EXECUTOR_MAP = {cls.__name__: cls for cls in BaseExecutor.__subclasses__()}
 

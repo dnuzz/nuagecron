@@ -3,7 +3,7 @@ from typing import Tuple
 
 from pydantic import BaseModel
 
-from nuagecron.domain.models.executions import Execution, ExecutionStatus
+from nuagecron.core.models.executions import Execution, ExecutionStatus
 
 
 class BaseExecutor(ABC, BaseModel):

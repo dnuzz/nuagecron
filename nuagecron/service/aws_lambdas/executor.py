@@ -1,6 +1,6 @@
 from typing import Any
 
-from nuagecron.domain.functions.executor import main
+from nuagecron.core.functions.executor import main
 
 
 def lambda_handler(payload: Any, context: Any):

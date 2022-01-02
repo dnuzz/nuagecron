@@ -1,6 +1,6 @@
 from typing import Any
 
-from nuagecron.domain.functions.updater import main
+from nuagecron.core.functions.updater import main
 
 
 def _get_execution_id(payload: dict) -> str:

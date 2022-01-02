@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 from pydantic import BaseModel, root_validator, validator
 
-from nuagecron.domain.models.schedules import Schedule
+from nuagecron.core.models.schedules import Schedule
 
 
 class ScheduleSet(BaseModel):

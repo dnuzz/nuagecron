@@ -2,9 +2,9 @@ from time import time
 from typing import Any
 
 from nuagecron import SERVICE_NAME
-from nuagecron.domain.adapters.utils import get_compute_adapter, get_db_adapter
-from nuagecron.domain.models.executions import Execution, ExecutionStatus
-from nuagecron.domain.models.utils import get_next_runtime
+from nuagecron.core.adapters.utils import get_compute_adapter, get_db_adapter
+from nuagecron.core.models.executions import Execution, ExecutionStatus
+from nuagecron.core.models.utils import get_next_runtime
 
 
 def main():

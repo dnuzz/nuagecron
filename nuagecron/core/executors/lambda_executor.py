@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from nuagecron.domain.executors.base_executor import BaseExecutor
-from nuagecron.domain.models.executions import ExecutionStatus
+from nuagecron.core.executors.base_executor import BaseExecutor
+from nuagecron.core.models.executions import ExecutionStatus
 
 
 class LambdaExecutor(BaseExecutor):
