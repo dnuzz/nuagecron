@@ -1,5 +1,5 @@
 from nuagecron.core.adapters.aws_adapters import (AWSComputeAdapter,
-                                                    DynamoDbAdapter)
+                                                  DynamoDbAdapter)
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 
