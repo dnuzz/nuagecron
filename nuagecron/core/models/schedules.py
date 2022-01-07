@@ -20,6 +20,7 @@ class Schedule(BaseModel):
     executor: str
     concurrent_runs: int = 1  # -1 is infinite, 0 is block till ready, =<1 is skipping
     overrides_applied: bool = False
+    overrides: Optional[dict]
     metadata: Optional[dict]
     execution_history: Optional[Dict[int, ExecutionStatus]]
     enabled: Optional[bool] = True

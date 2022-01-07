@@ -2,12 +2,12 @@
 name = "nuagecron"
 version = "0.1.0"
 description = "A multi-tenant serverless scheduler"
-authors = ["Your Name <you@example.com>"]
+authors = ["Daniel Nuzzo-Mueller dnuzzomueller@gmail.com"]
 license = "MIT License"
 
 packages = [
     { include = "cli", from = "nuagecron" },
-    { include = "domain", from = "nuagecron" }
+    { include = "core", from = "nuagecron" }
 ]
 include = ["nuagecron/__init__.py", "nuagecron/servicename.json"]
 

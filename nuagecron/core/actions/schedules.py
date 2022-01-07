@@ -19,7 +19,11 @@ def get_schedule_set(name: str, project_stack: Optional[str]) -> List[Schedule]:
     pass
 
 
-def update_schedule(name: str, project_stack: Optional[str], payload: dict):
+def update_schedule(name: str, project_stack: Optional[str], payload: dict) -> Schedule:
+    pass
+
+
+def apply_overrides_to_schedule(name: str, project_stack: Optional[str], payload: dict) -> Schedule:
     pass
 
 
