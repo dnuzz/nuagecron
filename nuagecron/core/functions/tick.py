@@ -2,14 +2,13 @@ from time import time
 from typing import Any
 
 from nuagecron import SERVICE_NAME
-from nuagecron.core.adapters.utils import get_compute_adapter, get_db_adapter
+from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
+from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.models.executions import Execution, ExecutionStatus
 from nuagecron.core.models.utils import get_next_runtime
 
 
-def main():
-    compute_adapter = get_compute_adapter()
-    db_adapter = get_db_adapter()
+def main(compute_adapter: BaseComputeAdapter, bd_adapter: BaseDBAdapter):
     start_time = time()
     timeout = 60 * 14  # about 14 minutes
     ready_schedules = db_adapter.get_schedules_to_run()

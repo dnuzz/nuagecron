@@ -23,7 +23,9 @@ def update_schedule(name: str, project_stack: Optional[str], payload: dict) -> S
     pass
 
 
-def apply_overrides_to_schedule(name: str, project_stack: Optional[str], payload: dict) -> Schedule:
+def apply_overrides_to_schedule(
+    name: str, project_stack: Optional[str], payload: dict
+) -> Schedule:
     pass
 
 

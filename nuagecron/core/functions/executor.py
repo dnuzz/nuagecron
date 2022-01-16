@@ -1,13 +1,12 @@
 from typing import Any
 
-from nuagecron.core.adapters.utils import get_db_adapter
+from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 from nuagecron.core.executors.base_executor import BaseExecutor
 
 EXECUTOR_MAP = {cls.__name__: cls for cls in BaseExecutor.__subclasses__()}
 
 
-def main(schedule_id: str, execution_time: int):
-    db_adapter = get_db_adapter()
+def main(db_adapter: BaseDBAdapter, schedule_id: str, execution_time: int):
     execution = db_adapter.get_execution(schedule_id, execution_time)
     executor_class = EXECUTOR_MAP[execution.executor]
     executor = executor_class(execution)

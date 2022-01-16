@@ -12,8 +12,7 @@ import json
 import os
 import sys
 
-from werkzeug._compat import (BytesIO, string_types, to_bytes,
-                              wsgi_encoding_dance)
+from werkzeug._compat import BytesIO, string_types, to_bytes, wsgi_encoding_dance
 from werkzeug.datastructures import Headers, MultiDict, iter_multi_items
 from werkzeug.http import HTTP_STATUS_CODES
 from werkzeug.urls import url_encode, url_unquote, url_unquote_plus

@@ -29,5 +29,7 @@ def get_execution_by_name(
     pass
 
 
-def execute_with_overrides(name: str, project_stack: Optional[str], overrides: dict) -> Execution:
+def execute_with_overrides(
+    name: str, project_stack: Optional[str], overrides: dict
+) -> Execution:
     pass
