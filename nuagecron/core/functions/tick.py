@@ -8,7 +8,7 @@ from nuagecron.core.models.executions import Execution, ExecutionStatus
 from nuagecron.core.models.utils import get_next_runtime
 
 
-def main(compute_adapter: BaseComputeAdapter, bd_adapter: BaseDBAdapter):
+def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
     start_time = time()
     timeout = 60 * 14  # about 14 minutes
     ready_schedules = db_adapter.get_schedules_to_run()

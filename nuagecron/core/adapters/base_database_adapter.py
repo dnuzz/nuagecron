@@ -7,7 +7,7 @@ from nuagecron.core.models.schedules import Schedule
 
 class BaseDBAdapter(ABC):
     @abstractmethod
-    def get_schedule(self, schedule_id: str) -> Schedule:
+    def get_schedule(self, schedule_id: str) -> Optional[Schedule]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -16,6 +16,14 @@ class BaseDBAdapter(ABC):
 
     @abstractmethod
     def put_schedule(self, schedule: Schedule):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def put_schedule_set(self, schedule_set: List[Schedule]):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_schedule_set(self, project_stack: str) -> List[Schedule]:
         raise NotImplementedError()
 
     @abstractmethod

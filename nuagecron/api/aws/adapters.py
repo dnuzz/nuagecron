@@ -44,11 +44,13 @@ class DynamoDbAdapter(BaseDBAdapter):
     def __init__(self):
         self.dynamodb_client = boto3.client("dynamodb")
 
-    def get_schedule(self, schedule_id: str) -> Schedule:
+    def get_schedule(self, schedule_id: str) -> Optional[Schedule]:
         payload = self.dynamodb_client.get_item(
             TableName=SCHEDULE_TABLE_NAME, Key={"schedule_id": {"S": schedule_id}}
         )
-        return Schedule(**dynamo_to_dict(payload))
+        if "Item" in payload:
+            return Schedule(**dynamo_to_dict(payload["Item"]))
+        return None
 
     def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
         response = self.dynamodb_client.query(
@@ -157,6 +159,54 @@ class DynamoDbAdapter(BaseDBAdapter):
         self.dynamodb_client.put_item(
             TableName=EXECUTION_TABLE_NAME, Item=model_to_dynamo(execution)
         )
+
+    def put_schedule_set(self, schedule_set: List[Schedule]):
+        # TODO At some point we probably want to implement some sort of atomic redlock approach to this insert logic
+        old_schedules: List[Schedule] = []
+        new_schedules: List[Schedule] = []
+        error: Exception = None
+        for schedule in schedule_set:
+            old_schedule = self.get_schedule(schedule.schedule_id)
+            if old_schedule:
+                old_schedules.append(old_schedule)
+            else:
+                new_schedules.append(schedule)
+            try:
+                self.put_schedule(schedule)
+            except Exception as e:
+                error = ValueError(
+                    f"Could not put schedule: {schedule.schedule_id} re-inserting old and aborting: {e}"
+                )
+                break
+
+        if error:
+            for schedule in old_schedules:
+                self.put_schedule(schedule)
+            for schedule in new_schedules:
+                self.delete_schedule(schedule.schedule_id)
+
+    def get_schedule_set(self, project_stack: str) -> List[Schedule]:
+        response = self.dynamodb_client.query(
+            TableName=SCHEDULE_TABLE_NAME,
+            IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
+            KeyCounditions={"project_stack": {"S": project_stack}},
+            Limit=100,
+            ScanIndexForward=False,
+        )
+        ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
+        while "LastEvaluatedKey" in response:
+            response = self.dynamodb_client.query(
+                TableName=SCHEDULE_TABLE_NAME,
+                IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
+                KeyCounditions={"project_stack": {"S": project_stack}},
+                Limit=100,
+                ScanIndexForward=False,
+                LastEvaluatedKey=response["LastEvaluatedKey"],
+            )
+            ret_val.extend(
+                [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
+            )
+        return ret_val
 
 
 LAMBDA_CLIENT = boto3.client("lambda")
