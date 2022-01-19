@@ -40,7 +40,18 @@ class ScheduleHandler:
     def apply_overrides_to_schedule(
         self, name: str, project_stack: Optional[str], payload: dict
     ) -> Schedule:
-        pass
+        schedule_id = get_schedule_id(name, project_stack)
+        schedule = self.db_adapter.get_schedule(schedule_id)
+        schedule_dict = schedule.dict()
+        schedule_dict.update(payload)
+        Schedule(**schedule_dict) # TODO add better validation that the schedule updates were appropriate
+        payload['overrides_applied'] = True
+        self.db_adapter.update_schedule(schedule_id, payload)
+        return self.db_adapter.get_schedule(schedule_id)
 
     def reset_schedule(self, name: str, project_stack: Optional[str]) -> bool:
-        pass
+        schedule_id = get_schedule_id(name, project_stack)
+        schedule = self.db_adapter.get_schedule(schedule_id)
+        self.db_adapter.update_schedule(schedule_id, schedule.original_settings)
+        return True
+

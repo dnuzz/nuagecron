@@ -29,6 +29,11 @@ def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
 
 
 def model_to_dynamo(model: BaseModel):
+    model_as_dict = model.dict()
+    if model_as_dict['enabled']:
+        model_as_dict['enabled'] = 'TRUE'
+    else:
+        model_as_dict['enabled'] = 'FALSE'
     return dictionary_to_dynamo(model.dict())
 
 
@@ -86,7 +91,7 @@ class DynamoDbAdapter(BaseDBAdapter):
             if update["enabled"]:
                 attr_updates["enabled"] = {"S": "TRUE", "Action": "PUT"}
             else:
-                attr_updates["enabled"] = {"S": "TRUE", "Action": "DELETE"}
+                attr_updates["enabled"] = {"S": "FALSE", "Action": "PUT"}
         self.dynamodb_client.update_item(
             TableName=SCHEDULE_TABLE_NAME,
             Key={"schedule_id": {"S": schedule_id}},
