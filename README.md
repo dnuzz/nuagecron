@@ -1,21 +1,9 @@
-<!--
-title: 'Serverless Framework Python Flask API backed by DynamoDB on AWS'
-description: 'This template demonstrates how to develop and deploy a simple Python Flask API service backed by DynamoDB running on AWS Lambda using the traditional Serverless Framework.'
-layout: Doc
-framework: v2
-platform: AWS
-language: Python
-priority: 2
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
-
-# Serverless Framework Python Flask API service backed by DynamoDB on AWS
-
-This template demonstrates how to develop and deploy a simple Python Flask API service, backed by DynamoDB, running on AWS Lambda using the traditional Serverless Framework.
+# Nuagecron - The serverless cloud scheduler
+Nuagecron is designed to answer the "How do I schedule my cloud based tasks? Question. While there are solutions out there right now none of them meet the "serverless first" approach. No one wants their scheduler to go down because some unpinned package dependency killed all their worksers or coordinator (*cough* Airflow *cough*) And having a single cron server is prone to failures and overloads. There are of course other pay-to-play options out there but sometimes you just want something running in your AWS account that you can manage, investigate and not really worry about if it is "up" but still have the ability to investigate it's behaviour (and even modify it for your use case!)
 
 
+
+# Serverless Template Info
 ## Anatomy of the template
 
 This template configures a single function, `api`, which is responsible for handling all incoming requests thanks to configured `http` events. To learn more about `http` event configuration options, please refer to [http event docs](https://www.serverless.com/framework/docs/providers/aws/events/apigateway/). As the events are configured in a way to accept all incoming requests, `Flask` framework is responsible for routing and handling requests internally. The implementation takes advantage of `serverless-wsgi`, which allows you to wrap WSGI applications such as Flask apps. To learn more about `serverless-wsgi`, please refer to corresponding [GitHub repository](https://github.com/logandk/serverless-wsgi). The template also relies on `serverless-python-requirements` plugin for packaging dependencies from `requirements.txt` file. For more details about `serverless-python-requirements` configuration, please refer to corresponding [GitHub repository](https://github.com/UnitedIncome/serverless-python-requirements).
