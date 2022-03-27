@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from nuagecron.core.models.executions import Execution
 from nuagecron.core.models.schedules import Schedule
@@ -19,7 +19,7 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def put_schedule_set(self, schedule_set: List[Schedule]):
+    def put_schedule_set(self, schedule_set: List[Schedule]) -> Dict[str, Schedule]:
         raise NotImplementedError()
 
     @abstractmethod

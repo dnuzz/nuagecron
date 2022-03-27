@@ -7,7 +7,8 @@ license = "MIT License"
 
 packages = [
     { include = "cli", from = "nuagecron" },
-    { include = "core", from = "nuagecron" }
+    { include = "core", from = "nuagecron" },
+    { include = "adapters", from = "nuagecron" }
 ]
 include = ["nuagecron/__init__.py", "nuagecron/servicename.json"]
 

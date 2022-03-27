@@ -44,13 +44,17 @@ def dynamo_to_dict(dynamo_object: dict):
 SCHEDULE_TABLE_NAME = f"{SERVICE_NAME}-schedules"
 EXECUTION_TABLE_NAME = f"{SERVICE_NAME}-executions"
 
+LAMBDA_CLIENT = boto3.client("lambda")
+FARGATE_CLIENT = boto3.client("fargate")
+DYNAMODB_CLIENT = boto3.client("dynamodb")
+
 
 class DynamoDbAdapter(BaseDBAdapter):
     def __init__(self):
-        self.dynamodb_client = boto3.client("dynamodb")
+        super().__init__()
 
     def get_schedule(self, schedule_id: str) -> Optional[Schedule]:
-        payload = self.dynamodb_client.get_item(
+        payload = DYNAMODB_CLIENT.get_item(
             TableName=SCHEDULE_TABLE_NAME, Key={"schedule_id": {"S": schedule_id}}
         )
         if "Item" in payload:
@@ -58,7 +62,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return None
 
     def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
-        response = self.dynamodb_client.query(
+        response = DYNAMODB_CLIENT.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
             KeyCounditions={"enabled": {"S": "TRUE"}},
@@ -67,7 +71,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
         while "LastEvaluatedKey" in response:
-            response = self.dynamodb_client.query(
+            response = DYNAMODB_CLIENT.query(
                 TableName=SCHEDULE_TABLE_NAME,
                 IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
                 KeyCounditions={"enabled": {"S": "TRUE"}},
@@ -81,7 +85,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return ret_val
 
     def put_schedule(self, schedule: Schedule):
-        self.dynamodb_client.put_item(
+        DYNAMODB_CLIENT.put_item(
             TableName=SCHEDULE_TABLE_NAME, Item=model_to_dynamo(schedule)
         )
 
@@ -92,19 +96,19 @@ class DynamoDbAdapter(BaseDBAdapter):
                 attr_updates["enabled"] = {"S": "TRUE", "Action": "PUT"}
             else:
                 attr_updates["enabled"] = {"S": "FALSE", "Action": "PUT"}
-        self.dynamodb_client.update_item(
+        DYNAMODB_CLIENT.update_item(
             TableName=SCHEDULE_TABLE_NAME,
             Key={"schedule_id": {"S": schedule_id}},
             AttributeUpdates=dictionary_to_dynamo(update, as_update=True),
         )
 
     def delete_schedule(self, schedule_id: str):
-        self.dynamodb_client.delete_item(
+        DYNAMODB_CLIENT.delete_item(
             TableName=SCHEDULE_TABLE_NAME, Key={"schedule_id": {"S": schedule_id}}
         )
 
     def get_execution_by_id(self, execution_id: str) -> Optional[Execution]:
-        response = self.dynamodb_client.query(
+        response = DYNAMODB_CLIENT.query(
             TableName=EXECUTION_TABLE_NAME,
             IndexName=f"{EXECUTION_TABLE_NAME}-execution-id",
             Select="ALL_ATTRIBUTES",
@@ -120,7 +124,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return Execution(**items[0])
 
     def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
-        payload = self.dynamodb_client.get_item(
+        payload = DYNAMODB_CLIENT.get_item(
             TableName=EXECUTION_TABLE_NAME,
             Key={
                 "schedule_id": {"S": schedule_id},
@@ -130,7 +134,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return Execution(**dynamo_to_dict(payload))
 
     def get_executions(self, schedule_id: str, count: int = 25) -> List[Execution]:
-        response = self.dynamodb_client.query(
+        response = DYNAMODB_CLIENT.query(
             TableName=EXECUTION_TABLE_NAME,
             Limit=count,
             KeyCounditions={"schedule_id": {"S": schedule_id}},
@@ -138,7 +142,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
         ret_val = [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
         while "LastEvaluatedKey" in response:
-            response = self.dynamodb_client.query(
+            response = DYNAMODB_CLIENT.query(
                 TableName=EXECUTION_TABLE_NAME,
                 Limit=count,
                 KeyCounditions={"schedule_id": {"S": schedule_id}},
@@ -151,7 +155,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return ret_val
 
     def update_execution(self, schedule_id: str, execution_time: int, update: dict):
-        self.dynamodb_client.update_item(
+        DYNAMODB_CLIENT.update_item(
             TableName=EXECUTION_TABLE_NAME,
             Key={
                 "schedule_id": {"S": schedule_id},
@@ -161,7 +165,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
 
     def put_execution(self, execution: Execution):
-        self.dynamodb_client.put_item(
+        DYNAMODB_CLIENT.put_item(
             TableName=EXECUTION_TABLE_NAME, Item=model_to_dynamo(execution)
         )
 
@@ -191,7 +195,7 @@ class DynamoDbAdapter(BaseDBAdapter):
                 self.delete_schedule(schedule.schedule_id)
 
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
-        response = self.dynamodb_client.query(
+        response = DYNAMODB_CLIENT.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
             KeyCounditions={"project_stack": {"S": project_stack}},
@@ -200,7 +204,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
         while "LastEvaluatedKey" in response:
-            response = self.dynamodb_client.query(
+            response = DYNAMODB_CLIENT.query(
                 TableName=SCHEDULE_TABLE_NAME,
                 IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
                 KeyCounditions={"project_stack": {"S": project_stack}},
@@ -212,10 +216,6 @@ class DynamoDbAdapter(BaseDBAdapter):
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
             )
         return ret_val
-
-
-LAMBDA_CLIENT = boto3.client("lambda")
-FARGATE_CLIENT = boto3.client("fargate")
 
 
 class AWSComputeAdapter(BaseComputeAdapter):

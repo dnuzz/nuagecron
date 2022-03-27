@@ -22,7 +22,7 @@ class ScheduleHandler:
     def upsert_schedule_set(self, payload: dict) -> Dict[str, List[Schedule]]:
         new_schedule_set = ScheduleSet(**payload)
         schedule_list = [x for x in new_schedule_set.schedules]
-        self.db_adapter.put_schedule_set(schedule_list)
+        return self.db_adapter.put_schedule_set(schedule_list)
 
     def get_schedule(
         self, name: str, project_stack: Optional[str] = None
@@ -35,6 +35,12 @@ class ScheduleHandler:
     def update_schedule(
         self, name: str, project_stack: Optional[str] = None, payload: dict = {}
     ) -> Schedule:
+        if 'original_settings' in payload:
+            del payload['original_settings']
+        schedule_id = get_schedule_id(name, project_stack)
+        current_schedule = self.db_adapter.get_schedule(schedule_id)
+        current_schedule.dict().update(payload)
+        Schedule(**current_schedule) # This tests to see if the changes to the schedule pass validation
         return self.db_adapter.update_schedule(get_schedule_id(name, project_stack))
 
     def apply_overrides_to_schedule(

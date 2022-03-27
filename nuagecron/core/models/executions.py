@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, constr
 
 
 class ExecutionStatus(str, Enum):
@@ -19,7 +19,7 @@ class Execution(BaseModel):
     class Meta:
         extra = "allow"
 
-    schedule_id: str
+    schedule_id: constr(to_lower=True, strip_whitespace=True)
     execution_time: int
     payload: dict
     executor: str

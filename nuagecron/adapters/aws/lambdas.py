@@ -21,6 +21,7 @@ def tick_lambda_handler(payload: Any, Context: Any):
 
 
 def _get_execution_id(payload: dict) -> str:
+    # This should take the payload and parse out the `batch_id` or request_id or whatever would come from the SNS notification that would ID the execution
     raise NotImplementedError()
 
 
