@@ -11,7 +11,6 @@ VALID_EXECUTORS = [cls.__name__ for cls in BaseExecutor.__subclasses__()]
 
 
 class Schedule(BaseModel):
-
     class Config:
         validate_assignment = True
 
@@ -24,11 +23,13 @@ class Schedule(BaseModel):
     executor: str
     concurrent_runs: int = 1  # -1 is infinite, 0 is block till ready, =<1 is skipping
     overrides_applied: bool = False
-    original_settings: dict = Field({}, allow_mutation=False, )
+    original_settings: dict = Field(
+        {},
+        allow_mutation=False,
+    )
     metadata: Optional[dict]
     execution_history: Optional[Dict[int, ExecutionStatus]]
     enabled: Optional[bool] = True
-
 
     @validator("executor")
     def executor_type_validator(cls, v):
@@ -40,7 +41,7 @@ class Schedule(BaseModel):
 
     @root_validator(pre=True)
     def root_validation(cls, values):
-        values['original_settings'] = deepcopy(values)
+        values["original_settings"] = deepcopy(values)
         values["next_run"] = int(get_next_runtime(values["cron"]).timestamp())
         values["schedule_id"] = get_schedule_id(values["name"], values["project_stack"])
         return values

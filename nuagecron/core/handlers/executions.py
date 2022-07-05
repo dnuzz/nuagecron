@@ -12,9 +12,6 @@ class ExecutionHandler:
         self.compute_adapter = compute_adapter
         self.db_adapter = db_adapter
 
-    def create_execution(self, name: str, project_stack: Optional[str]) -> Execution:
-        pass
-
     def kill_execution(
         self, name: str, project_stack: Optional[str], execution_time: int
     ) -> bool:

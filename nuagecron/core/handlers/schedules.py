@@ -35,12 +35,14 @@ class ScheduleHandler:
     def update_schedule(
         self, name: str, project_stack: Optional[str] = None, payload: dict = {}
     ) -> Schedule:
-        if 'original_settings' in payload:
-            del payload['original_settings']
+        if "original_settings" in payload:
+            del payload["original_settings"]
         schedule_id = get_schedule_id(name, project_stack)
         current_schedule = self.db_adapter.get_schedule(schedule_id)
         current_schedule.dict().update(payload)
-        Schedule(**current_schedule) # This tests to see if the changes to the schedule pass validation
+        Schedule(
+            **current_schedule
+        )  # This tests to see if the changes to the schedule pass validation
         return self.db_adapter.update_schedule(get_schedule_id(name, project_stack))
 
     def apply_overrides_to_schedule(
@@ -50,8 +52,10 @@ class ScheduleHandler:
         schedule = self.db_adapter.get_schedule(schedule_id)
         schedule_dict = schedule.dict()
         schedule_dict.update(payload)
-        Schedule(**schedule_dict) # TODO add better validation that the schedule updates were appropriate
-        payload['overrides_applied'] = True
+        Schedule(
+            **schedule_dict
+        )  # TODO add better validation that the schedule updates were appropriate
+        payload["overrides_applied"] = True
         self.db_adapter.update_schedule(schedule_id, payload)
         return self.db_adapter.get_schedule(schedule_id)
 
@@ -60,4 +64,3 @@ class ScheduleHandler:
         schedule = self.db_adapter.get_schedule(schedule_id)
         self.db_adapter.update_schedule(schedule_id, schedule.original_settings)
         return True
-

@@ -1,15 +1,15 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
 
 class BaseComputeAdapter(ABC):
-    @abstractclassmethod
+    @abstractmethod
     def invoke_function(
         self, function_name: str, payload: dict, sync: bool = True, timeout: int = None
     ) -> dict:
         raise NotImplementedError()
 
-    @abstractclassmethod
+    @abstractmethod
     def invoke_container(
         self, container_name: str, payload: dict, timeout: int = None
     ) -> Optional[str]:

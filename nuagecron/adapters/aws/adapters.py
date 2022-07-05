@@ -30,10 +30,10 @@ def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
 
 def model_to_dynamo(model: BaseModel):
     model_as_dict = model.dict()
-    if model_as_dict['enabled']:
-        model_as_dict['enabled'] = 'TRUE'
+    if model_as_dict["enabled"]:
+        model_as_dict["enabled"] = "TRUE"
     else:
-        model_as_dict['enabled'] = 'FALSE'
+        model_as_dict["enabled"] = "FALSE"
     return dictionary_to_dynamo(model.dict())
 
 
@@ -44,17 +44,14 @@ def dynamo_to_dict(dynamo_object: dict):
 SCHEDULE_TABLE_NAME = f"{SERVICE_NAME}-schedules"
 EXECUTION_TABLE_NAME = f"{SERVICE_NAME}-executions"
 
-LAMBDA_CLIENT = boto3.client("lambda")
-FARGATE_CLIENT = boto3.client("fargate")
-DYNAMODB_CLIENT = boto3.client("dynamodb")
-
 
 class DynamoDbAdapter(BaseDBAdapter):
     def __init__(self):
         super().__init__()
+        self.dynamodb_client = boto3.client("dynamodb")
 
     def get_schedule(self, schedule_id: str) -> Optional[Schedule]:
-        payload = DYNAMODB_CLIENT.get_item(
+        payload = self.dynamodb_client.get_item(
             TableName=SCHEDULE_TABLE_NAME, Key={"schedule_id": {"S": schedule_id}}
         )
         if "Item" in payload:
@@ -62,19 +59,21 @@ class DynamoDbAdapter(BaseDBAdapter):
         return None
 
     def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
-        response = DYNAMODB_CLIENT.query(
+        response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
-            KeyCounditions={"enabled": {"S": "TRUE"}},
+            KeyConditionExpression="enabled = :T",
+            ExpressionAttributeValues={":T": {"S": "TRUE"}},
             Limit=count,
             ScanIndexForward=False,
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
         while "LastEvaluatedKey" in response:
-            response = DYNAMODB_CLIENT.query(
+            response = self.dynamodb_client.query(
                 TableName=SCHEDULE_TABLE_NAME,
                 IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
-                KeyCounditions={"enabled": {"S": "TRUE"}},
+                KeyConditionExpression="enabled = :T",
+                ExpressionAttributeValues={":T": {"S": "TRUE"}},
                 Limit=count,
                 ScanIndexForward=False,
                 LastEvaluatedKey=response["LastEvaluatedKey"],
@@ -85,7 +84,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return ret_val
 
     def put_schedule(self, schedule: Schedule):
-        DYNAMODB_CLIENT.put_item(
+        self.dynamodb_client.put_item(
             TableName=SCHEDULE_TABLE_NAME, Item=model_to_dynamo(schedule)
         )
 
@@ -96,23 +95,23 @@ class DynamoDbAdapter(BaseDBAdapter):
                 attr_updates["enabled"] = {"S": "TRUE", "Action": "PUT"}
             else:
                 attr_updates["enabled"] = {"S": "FALSE", "Action": "PUT"}
-        DYNAMODB_CLIENT.update_item(
+        self.dynamodb_client.update_item(
             TableName=SCHEDULE_TABLE_NAME,
             Key={"schedule_id": {"S": schedule_id}},
             AttributeUpdates=dictionary_to_dynamo(update, as_update=True),
         )
 
     def delete_schedule(self, schedule_id: str):
-        DYNAMODB_CLIENT.delete_item(
+        self.dynamodb_client.delete_item(
             TableName=SCHEDULE_TABLE_NAME, Key={"schedule_id": {"S": schedule_id}}
         )
 
     def get_execution_by_id(self, execution_id: str) -> Optional[Execution]:
-        response = DYNAMODB_CLIENT.query(
+        response = self.dynamodb_client.query(
             TableName=EXECUTION_TABLE_NAME,
             IndexName=f"{EXECUTION_TABLE_NAME}-execution-id",
             Select="ALL_ATTRIBUTES",
-            KeyCounditions={"execution_id": {"S": execution_id}},
+            KeyConditionExpression=Key("execution_id").eq(execution_id),
         )
         items = response["Items"]
         if items.__len__() == 0:
@@ -124,7 +123,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return Execution(**items[0])
 
     def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
-        payload = DYNAMODB_CLIENT.get_item(
+        payload = self.dynamodb_client.get_item(
             TableName=EXECUTION_TABLE_NAME,
             Key={
                 "schedule_id": {"S": schedule_id},
@@ -134,18 +133,18 @@ class DynamoDbAdapter(BaseDBAdapter):
         return Execution(**dynamo_to_dict(payload))
 
     def get_executions(self, schedule_id: str, count: int = 25) -> List[Execution]:
-        response = DYNAMODB_CLIENT.query(
+        response = self.dynamodb_client.query(
             TableName=EXECUTION_TABLE_NAME,
             Limit=count,
-            KeyCounditions={"schedule_id": {"S": schedule_id}},
+            KeyConditionExpression=Key("schedule_id").eq(schedule_id),
             ScanIndexForward=False,
         )
         ret_val = [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
         while "LastEvaluatedKey" in response:
-            response = DYNAMODB_CLIENT.query(
+            response = self.dynamodb_client.query(
                 TableName=EXECUTION_TABLE_NAME,
                 Limit=count,
-                KeyCounditions={"schedule_id": {"S": schedule_id}},
+                KeyConditionExpression=Key("schedule_id").eq(schedule_id),
                 ScanIndexForward=False,
                 LastEvaluatedKey=response["LastEvaluatedKey"],
             )
@@ -155,7 +154,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         return ret_val
 
     def update_execution(self, schedule_id: str, execution_time: int, update: dict):
-        DYNAMODB_CLIENT.update_item(
+        self.dynamodb_client.update_item(
             TableName=EXECUTION_TABLE_NAME,
             Key={
                 "schedule_id": {"S": schedule_id},
@@ -165,7 +164,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
 
     def put_execution(self, execution: Execution):
-        DYNAMODB_CLIENT.put_item(
+        self.dynamodb_client.put_item(
             TableName=EXECUTION_TABLE_NAME, Item=model_to_dynamo(execution)
         )
 
@@ -173,7 +172,6 @@ class DynamoDbAdapter(BaseDBAdapter):
         # TODO At some point we probably want to implement some sort of atomic redlock approach to this insert logic
         old_schedules: List[Schedule] = []
         new_schedules: List[Schedule] = []
-        error: Exception = None
         for schedule in schedule_set:
             old_schedule = self.get_schedule(schedule.schedule_id)
             if old_schedule:
@@ -195,19 +193,19 @@ class DynamoDbAdapter(BaseDBAdapter):
                 self.delete_schedule(schedule.schedule_id)
 
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
-        response = DYNAMODB_CLIENT.query(
+        response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
-            KeyCounditions={"project_stack": {"S": project_stack}},
+            KeyConditionExpression=Key("project_stack").eq(project_stack),
             Limit=100,
             ScanIndexForward=False,
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
         while "LastEvaluatedKey" in response:
-            response = DYNAMODB_CLIENT.query(
+            response = self.dynamodb_client.query(
                 TableName=SCHEDULE_TABLE_NAME,
                 IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
-                KeyCounditions={"project_stack": {"S": project_stack}},
+                KeyConditionExpression=Key("project_stack").eq(project_stack),
                 Limit=100,
                 ScanIndexForward=False,
                 LastEvaluatedKey=response["LastEvaluatedKey"],
@@ -221,6 +219,7 @@ class DynamoDbAdapter(BaseDBAdapter):
 class AWSComputeAdapter(BaseComputeAdapter):
     def __init__(self) -> None:
         super().__init__()
+        self.lambda_client = boto3.client("lambda")
 
     def invoke_function(
         self, function_name: str, payload: dict, sync: bool = True, timeout: int = None
@@ -230,7 +229,7 @@ class AWSComputeAdapter(BaseComputeAdapter):
             invoke_type = "RequestResponse"
         else:
             invoke_type = "Event"
-        response = LAMBDA_CLIENT.invoke(
+        response = self.lambda_client.invoke(
             FunctionName=function_name,
             Payload=payload_str,
             InvocationType=invoke_type,
@@ -244,11 +243,12 @@ class AWSComputeAdapter(BaseComputeAdapter):
         if sync:
             try:
                 returned_payload_dict = json.loads(returned_payload)
+                if "errorMessage" in returned_payload_dict:
+                    raise Exception(returned_payload_dict)
+                return returned_payload_dict
             except:
                 print(f"Could not load Payload as JSON: {returned_payload}")
                 return returned_payload
-            if "errorMessage" in returned_payload_dict:
-                raise Exception(returned_payload_dict)
         else:
             return response["ResponseMetadata"]["RequestId"]
 
