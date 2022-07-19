@@ -6,7 +6,7 @@ from nuagecron.core.models.utils import get_schedule_id
 from nuagecron.core.models.schedules import Schedule
 from nuagecron.core.models.schedule_set import ScheduleSet
 
-
+# TODO This may not even be needed or should maybe live in the api layer
 class ScheduleHandler:
     def __init__(
         self, db_adapter: BaseDBAdapter, compute_adapter: BaseComputeAdapter

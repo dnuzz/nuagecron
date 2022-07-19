@@ -111,7 +111,8 @@ class DynamoDbAdapter(BaseDBAdapter):
             TableName=EXECUTION_TABLE_NAME,
             IndexName=f"{EXECUTION_TABLE_NAME}-execution-id",
             Select="ALL_ATTRIBUTES",
-            KeyConditionExpression=Key("execution_id").eq(execution_id),
+            KeyConditionExpression="execution_id = :V",
+            ExpressionAttributeValues={":V": {"S": execution_id}},
         )
         items = response["Items"]
         if items.__len__() == 0:
@@ -136,7 +137,8 @@ class DynamoDbAdapter(BaseDBAdapter):
         response = self.dynamodb_client.query(
             TableName=EXECUTION_TABLE_NAME,
             Limit=count,
-            KeyConditionExpression=Key("schedule_id").eq(schedule_id),
+            KeyConditionExpression="schedule_id = :V",
+            ExpressionAttributeValues={":V": {"S": schedule_id}},
             ScanIndexForward=False,
         )
         ret_val = [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
@@ -144,7 +146,8 @@ class DynamoDbAdapter(BaseDBAdapter):
             response = self.dynamodb_client.query(
                 TableName=EXECUTION_TABLE_NAME,
                 Limit=count,
-                KeyConditionExpression=Key("schedule_id").eq(schedule_id),
+                KeyConditionExpression="schedule_id = :V",
+                ExpressionAttributeValues={":V": {"S": schedule_id}},
                 ScanIndexForward=False,
                 LastEvaluatedKey=response["LastEvaluatedKey"],
             )
@@ -196,7 +199,8 @@ class DynamoDbAdapter(BaseDBAdapter):
         response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
-            KeyConditionExpression=Key("project_stack").eq(project_stack),
+            KeyConditionExpression="project_stack = :V",
+            ExpressionAttributeValues={":V": {"S": project_stack}},
             Limit=100,
             ScanIndexForward=False,
         )
@@ -205,7 +209,8 @@ class DynamoDbAdapter(BaseDBAdapter):
             response = self.dynamodb_client.query(
                 TableName=SCHEDULE_TABLE_NAME,
                 IndexName=f"{SCHEDULE_TABLE_NAME}-project-stack",
-                KeyConditionExpression=Key("project_stack").eq(project_stack),
+                KeyConditionExpression="project_stack = :V",
+                ExpressionAttributeValues={":V": {"S": project_stack}},
                 Limit=100,
                 ScanIndexForward=False,
                 LastEvaluatedKey=response["LastEvaluatedKey"],

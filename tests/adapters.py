@@ -1,18 +1,90 @@
-from typing import Optional
+from collections import defaultdict
+from datetime import datetime
+from typing import Dict, Optional, List, Tuple
+from uuid import uuid4
+from core.executors.base_executor import BaseExecutor
+from core.models.executions import Execution, ExecutionStatus
+
+from core.models.schedules import Schedule
 from nuagecron import SERVICE_NAME
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
-from nuagecron.adapters.aws.adapters import DynamoDbAdapter
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 from nuagecron.core.functions.executor import main as executor_main
 from nuagecron.core.functions.updater import main as updater_main
 from nuagecron.core.functions.tick import main as tick_main
-from moto import mock_dynamodb
 
 
-@mock_dynamodb
-class MockDatabaseAdapter(DynamoDbAdapter):
+class MockDatabaseAdapter(BaseDBAdapter):
     def __init__(self):
-        super().__init__()
+        self.schedules: Dict[str, Schedule] = {}
+        self.executions: Dict[str, Dict[int, Execution]] = defaultdict(dict)
+        self.executions_by_id: Dict[str, Execution] = {}
+        self.schedules_set: Dict[str, List[str]] = defaultdict(list)
+
+    def get_schedule(self, schedule_id: str) -> Optional[Schedule]:
+        return self.schedules.get(schedule_id)
+
+    def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
+        schedules = self.schedules.values()
+        ret_val = list(
+            filter(lambda x: x.next_run > datetime.utcnow().timestamp(), schedules)
+        )
+        return ret_val[:count]
+
+    def put_schedule(self, schedule: Schedule):
+        self.schedules[schedule.schedule_id] = schedule
+
+    def put_schedule_set(self, schedule_set: List[Schedule]):
+        schedule_set_names = {x.project_stack for x in schedule_set}
+        if len(schedule_set_names) > 1:
+            raise ValueError("Can only PUT a single schedule set at a time")
+        schedule_set_name = list(schedule_set_names)[0]
+
+        new_schedule_ids = [x.schedule_id for x in schedule_set]
+
+        old_schedule_ids = self.schedules_set.get(schedule_set_name, [])
+        for old_id in old_schedule_ids:
+            self.schedules.pop(old_id)
+        for new_schedule in schedule_set:
+            self.schedules[new_schedule.schedule_id] = new_schedule
+        self.schedules_set[schedule_set_name] = new_schedule_ids
+
+    def get_schedule_set(self, project_stack: str) -> List[Schedule]:
+        stack_schedule_ids = self.schedules_set[project_stack]
+        a_set = [self.schedules[x] for x in stack_schedule_ids]
+        return a_set
+
+    def update_schedule(self, schedule_id: str, update: dict):
+        for k, v in update.items():
+            self.schedules[schedule_id].__setattr__(k, v)
+
+    def delete_schedule(self, schedule_id: str):
+        self.schedules.pop(schedule_id, None)
+
+    def get_execution_by_id(self, execution_id: str) -> Optional[Execution]:
+        return self.executions_by_id.get(execution_id)
+
+    def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
+        return self.executions[schedule_id][execution_time]
+
+    def get_executions(self, schedule_id: str, count: int = 100) -> List[Execution]:
+        executions = self.executions[schedule_id]
+        ret_val: List[Execution] = []
+        for v in executions.values():
+            if len(ret_val) == count:
+                return ret_val
+            ret_val.append(v)
+        return ret_val
+
+    def update_execution(self, schedule_id: str, execution_time: int, update: dict):
+        execution = self.executions[schedule_id][execution_time]
+        for k, v in update.items():
+            execution.__setattr__(k, v)
+
+    def put_execution(self, execution: Execution):
+        self.executions[execution.schedule_id][execution.execution_time] = execution
+        if execution.execution_id:
+            self.executions_by_id[execution.execution_id] = execution
 
 
 class MockComputeAdapter(BaseComputeAdapter):
@@ -39,3 +111,42 @@ class MockComputeAdapter(BaseComputeAdapter):
         self, container_name: str, payload: dict, timeout: int = None
     ) -> Optional[str]:
         return ""
+
+
+class MockExecutor(BaseExecutor):
+    class PayloadValidation(BaseExecutor.PayloadValidation):
+        a: str
+
+    def validate(self):
+
+        """
+        This should validate the params to the best of it's ability using the payload
+        """
+        pass
+
+    def prepare(self):
+        """
+        This should prepare variables for runtime and store within the executor instance for the execute call
+        """
+        pass
+
+    def execute(
+        self,
+    ) -> Tuple[dict, ExecutionStatus]:
+        """
+        This should execute the contents and return both an execution status and any attribute updates that need to be performed
+        """
+        return {"execution_id": str(uuid4())}, ExecutionStatus.running
+
+    def process_update(self, update: dict) -> dict:
+        """
+        This should take in an update dictionary from a source specific to this executor
+        and return a dictionary that represents the new/ updated attributes for the execution
+        """
+        return update
+
+    def try_kill(self) -> bool:
+        """
+        This should attempt to kill the running execution and return whether that was successful or not
+        """
+        return True

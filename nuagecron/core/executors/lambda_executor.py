@@ -2,11 +2,15 @@ from typing import Tuple
 
 from nuagecron.core.executors.base_executor import BaseExecutor
 from nuagecron.core.models.executions import ExecutionStatus
+from nuagecron.core.models.executions import Execution
 
 
 class LambdaExecutor(BaseExecutor):
     class PayloadValidation(BaseExecutor.PayloadValidation):
         lambda_name: str
+
+    def __init__(self, execution: Execution):
+        super().__init__(execution)
 
     """
     This should be called on creation of a schedule to ensure that any resources are available that the executor needs. (Deploy time validation)

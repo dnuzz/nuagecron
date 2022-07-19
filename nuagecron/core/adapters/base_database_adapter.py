@@ -19,7 +19,7 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def put_schedule_set(self, schedule_set: List[Schedule]) -> Dict[str, Schedule]:
+    def put_schedule_set(self, schedule_set: List[Schedule]):
         raise NotImplementedError()
 
     @abstractmethod

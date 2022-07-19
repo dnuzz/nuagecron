@@ -4,7 +4,7 @@ from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 
 from nuagecron.core.models.executions import Execution
 
-
+# TODO This may not even be needed or should maybe live in the api layer
 class ExecutionHandler:
     def __init__(
         self, db_adapter: BaseDBAdapter, compute_adapter: BaseComputeAdapter

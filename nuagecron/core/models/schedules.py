@@ -16,7 +16,7 @@ class Schedule(BaseModel):
 
     schedule_id: constr(to_lower=True, strip_whitespace=True)
     name: constr(to_lower=True, strip_whitespace=True)
-    project_stack: constr(to_lower=True, strip_whitespace=True)
+    project_stack: Optional[constr(to_lower=True, strip_whitespace=True)]
     payload: dict
     cron: str
     next_run: int

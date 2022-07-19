@@ -6,7 +6,7 @@ from crontab import CronTab
 
 def get_next_runtime(cron: str) -> datetime:
     if cron == "MANUAL":
-        nextrun = datetime.max
+        return datetime.max
     else:
         cron_tab = CronTab(cron)
         return cron_tab.next(default_utc=True, return_datetime=True)

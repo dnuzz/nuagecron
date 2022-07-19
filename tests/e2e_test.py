@@ -1,22 +1,39 @@
-from .adapters import MockComputeAdapter, MockDatabaseAdapter
+from core.models.executions import Execution
+from .adapters import MockComputeAdapter, MockDatabaseAdapter, MockExecutor
+from nuagecron.core.models.schedules import Schedule
 from nuagecron.core.functions.executor import main as executor_main
 from nuagecron.core.functions.updater import main as updater_main
 from nuagecron.core.functions.tick import main as tick_main
-import pytest
-from moto import mock_dynamodb
-import boto3
-import os
+from datetime import datetime
 
-os.environ["AWS_ACCESS_KEY_ID"] = "testing"
-os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
-os.environ["AWS_SECURITY_TOKEN"] = "testing"
-os.environ["AWS_SESSION_TOKEN"] = "testing"
-os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+DB_ADAPTER = MockDatabaseAdapter()
+COMPUTE_ADAPTER = MockComputeAdapter(DB_ADAPTER)
+
+TEST_SCHEDULE = Schedule(
+    name="test",
+    project_stack=None,
+    payload={"lambda_name": "a"},
+    cron="1 * * * *",
+    executor="LambdaExecutor",
+)
+EXECUTION_DICT = TEST_SCHEDULE.dict()
+EXECUTION_DICT.update(
+    {"execution_time": 1, "status": "running", "execution_id": "test_id"}
+)
+TEST_EXECUTION = Execution(**EXECUTION_DICT)
 
 
-@mock_dynamodb
 def test_tick():
-    a = boto3.client("dynamodb")
-    db_adapter = MockDatabaseAdapter()
-    compute_adapter = MockComputeAdapter(db_adapter)
-    tick_main(compute_adapter, db_adapter)
+    DB_ADAPTER.put_schedule(TEST_SCHEDULE)
+    tick_main(COMPUTE_ADAPTER, DB_ADAPTER)
+
+
+def test_executor():
+    DB_ADAPTER.put_schedule(TEST_SCHEDULE)
+    DB_ADAPTER.put_execution(TEST_EXECUTION)
+    executor_main(DB_ADAPTER, TEST_SCHEDULE.schedule_id, 1)
+
+
+def test_updater():
+    DB_ADAPTER.put_execution(TEST_EXECUTION)
+    updater_main(DB_ADAPTER, "test_id", {"status": "succeeded"})

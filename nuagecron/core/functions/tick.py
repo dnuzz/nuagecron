@@ -17,7 +17,7 @@ def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
             # TODO check for concurrent_run limits using execution_history
             schedule_as_dict = schedule.dict()
             schedule_as_dict["execution_time"] = schedule.next_run
-            schedule_as_dict["execution_status"] = ExecutionStatus.ready
+            schedule_as_dict["status"] = ExecutionStatus.ready
             new_execution = Execution(**schedule_as_dict)
             db_adapter.put_execution(new_execution)
             compute_adapter.invoke_function(

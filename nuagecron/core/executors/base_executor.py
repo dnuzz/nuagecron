@@ -6,8 +6,12 @@ from pydantic import BaseModel
 from nuagecron.core.models.executions import Execution, ExecutionStatus
 
 
-class BaseExecutor(ABC, BaseModel):
-    class PayloadValidation(ABC, BaseModel):
+class BaseExecutor(ABC):
+
+    execution: Execution
+    payload: dict
+
+    class PayloadValidation(BaseModel):
         pass
 
     def __init__(self, execution: Execution):
@@ -34,7 +38,7 @@ class BaseExecutor(ABC, BaseModel):
         self,
     ) -> Tuple[dict, ExecutionStatus]:
         """
-        This should execute the contents and return both an execution status and any attribute updated that need to be performed
+        This should execute the contents and return both an execution status and any attribute updates that need to be performed
         """
         raise NotImplementedError()
 
