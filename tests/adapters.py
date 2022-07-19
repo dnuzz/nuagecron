@@ -2,10 +2,11 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Optional, List, Tuple
 from uuid import uuid4
-from core.executors.base_executor import BaseExecutor
-from core.models.executions import Execution, ExecutionStatus
+from nuagecron.core.executors import BaseExecutor
+from nuagecron.core.executors import register_executor
+from nuagecron.core.models.executions import Execution, ExecutionStatus
 
-from core.models.schedules import Schedule
+from nuagecron.core.models.schedules import Schedule
 from nuagecron import SERVICE_NAME
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
@@ -27,7 +28,7 @@ class MockDatabaseAdapter(BaseDBAdapter):
     def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
         schedules = self.schedules.values()
         ret_val = list(
-            filter(lambda x: x.next_run > datetime.utcnow().timestamp(), schedules)
+            filter(lambda x: x.next_run < datetime.utcnow().timestamp(), schedules)
         )
         return ret_val[:count]
 
@@ -113,6 +114,7 @@ class MockComputeAdapter(BaseComputeAdapter):
         return ""
 
 
+@register_executor
 class MockExecutor(BaseExecutor):
     class PayloadValidation(BaseExecutor.PayloadValidation):
         a: str
@@ -132,11 +134,11 @@ class MockExecutor(BaseExecutor):
 
     def execute(
         self,
-    ) -> Tuple[dict, ExecutionStatus]:
+    ) -> Tuple[Optional[str], ExecutionStatus]:
         """
         This should execute the contents and return both an execution status and any attribute updates that need to be performed
         """
-        return {"execution_id": str(uuid4())}, ExecutionStatus.running
+        return str(uuid4()), ExecutionStatus.running
 
     def process_update(self, update: dict) -> dict:
         """

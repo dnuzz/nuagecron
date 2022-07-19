@@ -3,7 +3,7 @@ service: nuagecron
 frameworkVersion: '2 || 3'
 
 custom:
-  servicename: ${file(./nuagecron/servicename.json):servicename} 
+  servicename: ${file(./servicename.json):servicename} 
   pythonRequirements:
     usePoetry: true
     dockerizePip: true

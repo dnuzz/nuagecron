@@ -1,10 +1,12 @@
 from typing import Tuple
 
-from nuagecron.core.executors.base_executor import BaseExecutor
+from nuagecron.core.executors import BaseExecutor
+from nuagecron.core.executors import register_executor
 from nuagecron.core.models.executions import ExecutionStatus
 from nuagecron.core.models.executions import Execution
 
 
+@register_executor
 class LambdaExecutor(BaseExecutor):
     class PayloadValidation(BaseExecutor.PayloadValidation):
         lambda_name: str

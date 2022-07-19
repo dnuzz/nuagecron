@@ -1,9 +1,7 @@
 from typing import Any
 
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
-from nuagecron.core.executors.base_executor import BaseExecutor
-
-EXECUTOR_MAP = {cls.__name__: cls for cls in BaseExecutor.__subclasses__()}
+from nuagecron.core.executors import EXECUTOR_MAP
 
 
 def main(db_adapter: BaseDBAdapter, schedule_id: str, execution_time: int):

@@ -1,5 +1,5 @@
-from core.models.executions import Execution
 from .adapters import MockComputeAdapter, MockDatabaseAdapter, MockExecutor
+from core.models.executions import Execution
 from nuagecron.core.models.schedules import Schedule
 from nuagecron.core.functions.executor import main as executor_main
 from nuagecron.core.functions.updater import main as updater_main
@@ -12,9 +12,9 @@ COMPUTE_ADAPTER = MockComputeAdapter(DB_ADAPTER)
 TEST_SCHEDULE = Schedule(
     name="test",
     project_stack=None,
-    payload={"lambda_name": "a"},
-    cron="1 * * * *",
-    executor="LambdaExecutor",
+    payload={"a": "a"},
+    cron="0 5 * * *",
+    executor="MockExecutor",
 )
 EXECUTION_DICT = TEST_SCHEDULE.dict()
 EXECUTION_DICT.update(

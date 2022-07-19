@@ -1,13 +1,11 @@
 from copy import deepcopy
-from typing import Dict, Literal, Optional
+from typing import Dict, Optional
 
 from pydantic import BaseModel, constr, root_validator, validator, Field
 
-from nuagecron.core.executors.base_executor import BaseExecutor
+from nuagecron.core.executors import EXECUTOR_MAP
 from nuagecron.core.models.executions import ExecutionStatus
 from nuagecron.core.models.utils import get_next_runtime, get_schedule_id
-
-VALID_EXECUTORS = [cls.__name__ for cls in BaseExecutor.__subclasses__()]
 
 
 class Schedule(BaseModel):
@@ -33,9 +31,9 @@ class Schedule(BaseModel):
 
     @validator("executor")
     def executor_type_validator(cls, v):
-        if v not in VALID_EXECUTORS:
+        if v not in EXECUTOR_MAP.keys():
             raise ValueError(
-                f'{v} is not a valid Executor. Valid executors are: [{",".join(VALID_EXECUTORS)}]'
+                f'{v} is not a valid Executor. Valid executors are: [{",".join(EXECUTOR_MAP.keys())}]'
             )
         return v
 
