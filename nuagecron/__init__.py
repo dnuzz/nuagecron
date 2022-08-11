@@ -1,11 +1,15 @@
 import json
 from os import environ, path
 
+_SERVICENAME_JSON = json.load(open("servicename.json")) if path.exists("servicename.json") else {}
+
 SERVICE_NAME = environ.get(
     "NUAGECRON_SERVICE_NAME",
-    json.load(open("servicename.json"))["servicename"],
+    _SERVICENAME_JSON.get("servicename", 'nuagecron'),
 )
 CLOUD_PROVIDER = environ.get(
     "NUAGECRON_CLOUD_PROVDER",
-    json.load(open("servicename.json"))["cloud_provider"],
+    _SERVICENAME_JSON.get("cloud_provider", 'AWS'),
 )
+
+__all__ = ['SERVICE_NAME', 'CLOUD_PROVIDER']
