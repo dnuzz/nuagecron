@@ -5,12 +5,19 @@ frameworkVersion: '2 || 3'
 custom:
   servicename: ${file(./servicename.json):servicename} 
   pythonRequirements:
-    usePoetry: true
     dockerizePip: true
     dockerfile: Dockerfile
+    slim: true
   wsgi:
     app: nuagecron.api.app.app
     packRequirements: false
+
+package:
+  exclude:
+    - node_modules/**
+    - frontend/**
+  include:
+    - servicename.json
 
 provider:
   name: aws
@@ -30,7 +37,9 @@ provider:
             - dynamodb:DeleteItem
           Resource:
             - Fn::GetAtt: [ SchedulesTable, Arn ]
+            - Fn::Join: [ '/', ['Fn::GetAtt': [ SchedulesTable, Arn ], 'index', '*']]
             - Fn::GetAtt: [ ExecutionsTable, Arn ]
+            - Fn::Join: [ '/', ['Fn::GetAtt': [ ExecutionsTable, Arn ], 'index', '*']]
   environment:
     SCHEDULES_TABLE: ${self:custom.servicename}-schedules
     EXECUTIONS_TABLE: ${self:custom.servicename}-executions
@@ -47,15 +56,15 @@ functions:
           method: ANY
   tick:
     name: ${self:custom.servicename}-tick
-    handler: nuagecron.api.lambdas.tick.lambda_handler
+    handler: nuagecron.adapters.aws.lambdas.tick_lambda_handler
     events:
       - schedule: rate(2 hours)
   executor:
     name: ${self:custom.servicename}-executor
-    handler: nuagecron.api.lambdas.executor.lambda_handler
+    handler: nuagecron.adapters.aws.lambdas.executor_lambda_handler
   updater:
     name: ${self:custom.servicename}-updater
-    handler: nuagecron.api.lambdas.updater.lambda_handler
+    handler: nuagecron.adapters.aws.lambdas.executor_lambda_handler
 
 plugins:
   - serverless-wsgi
@@ -94,7 +103,7 @@ resources:
               - AttributeName: project_stack
                 KeyType: HASH
             Projection:
-              ProjectionType: 'KEYS ONLY'
+              ProjectionType: 'KEYS_ONLY'
     ExecutionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -118,4 +127,4 @@ resources:
               - AttributeName: execution_id
                 KeyType: HASH
             Projection:
-              ProjectionType: 'KEYS ONLY'
+              ProjectionType: 'KEYS_ONLY'

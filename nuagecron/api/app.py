@@ -1,9 +1,9 @@
 import os
 
 import boto3
-from flask import Flask, jsonify, make_response, request
+from flask import Flask, jsonify, make_response, request, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='frontend')
 
 
 dynamodb_client = boto3.client("dynamodb")
@@ -49,3 +49,7 @@ def create_user():
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error="Not found!"), 404)
+
+@app.route("/", defaults={'path':''})
+def serve(path):
+    return send_from_directory(app.static_folder,'index.html')
