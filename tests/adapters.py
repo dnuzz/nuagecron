@@ -35,21 +35,6 @@ class MockDatabaseAdapter(BaseDBAdapter):
     def put_schedule(self, schedule: Schedule):
         self.schedules[schedule.schedule_id] = schedule
 
-    def put_schedule_set(self, schedule_set: List[Schedule]):
-        schedule_set_names = {x.project_stack for x in schedule_set}
-        if len(schedule_set_names) > 1:
-            raise ValueError("Can only PUT a single schedule set at a time")
-        schedule_set_name = list(schedule_set_names)[0]
-
-        new_schedule_ids = [x.schedule_id for x in schedule_set]
-
-        old_schedule_ids = self.schedules_set.get(schedule_set_name, [])
-        for old_id in old_schedule_ids:
-            self.schedules.pop(old_id)
-        for new_schedule in schedule_set:
-            self.schedules[new_schedule.schedule_id] = new_schedule
-        self.schedules_set[schedule_set_name] = new_schedule_ids
-
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
         stack_schedule_ids = self.schedules_set[project_stack]
         a_set = [self.schedules[x] for x in stack_schedule_ids]
@@ -86,6 +71,16 @@ class MockDatabaseAdapter(BaseDBAdapter):
         self.executions[execution.schedule_id][execution.execution_time] = execution
         if execution.execution_id:
             self.executions_by_id[execution.execution_id] = execution
+
+    def open_transaction(self):
+        pass
+    
+    def commit_transaction(self):
+        pass
+
+    def rollback_transaction(self):
+        pass
+
 
 
 class MockComputeAdapter(BaseComputeAdapter):

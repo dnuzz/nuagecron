@@ -19,10 +19,6 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def put_schedule_set(self, schedule_set: List[Schedule]):
-        raise NotImplementedError()
-
-    @abstractmethod
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
         raise NotImplementedError()
 
@@ -53,3 +49,15 @@ class BaseDBAdapter(ABC):
     @abstractmethod
     def put_execution(self, execution: Execution):
         raise NotImplementedError()
+
+    @abstractmethod
+    def open_transaction(self):
+        raise NotImplementedError
+    
+    @abstractmethod
+    def commit_transaction(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def rollback_transaction(self):
+        raise NotImplementedError

@@ -171,29 +171,6 @@ class DynamoDbAdapter(BaseDBAdapter):
             TableName=EXECUTION_TABLE_NAME, Item=model_to_dynamo(execution)
         )
 
-    def put_schedule_set(self, schedule_set: List[Schedule]):
-        # TODO At some point we probably want to implement some sort of atomic redlock approach to this insert logic
-        old_schedules: List[Schedule] = []
-        new_schedules: List[Schedule] = []
-        for schedule in schedule_set:
-            old_schedule = self.get_schedule(schedule.schedule_id)
-            if old_schedule:
-                old_schedules.append(old_schedule)
-            else:
-                new_schedules.append(schedule)
-            try:
-                self.put_schedule(schedule)
-            except Exception as e:
-                error = ValueError(
-                    f"Could not put schedule: {schedule.schedule_id} re-inserting old and aborting: {e}"
-                )
-                break
-
-        if error:
-            for schedule in old_schedules:
-                self.put_schedule(schedule)
-            for schedule in new_schedules:
-                self.delete_schedule(schedule.schedule_id)
 
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
         response = self.dynamodb_client.query(
@@ -219,6 +196,17 @@ class DynamoDbAdapter(BaseDBAdapter):
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
             )
         return ret_val
+
+
+    def open_transaction(self):
+        pass
+    
+    def commit_transaction(self):
+        pass
+
+
+    def rollback_transaction(self):
+        pass
 
 
 class AWSComputeAdapter(BaseComputeAdapter):
