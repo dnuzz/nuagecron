@@ -171,7 +171,6 @@ class DynamoDbAdapter(BaseDBAdapter):
             TableName=EXECUTION_TABLE_NAME, Item=model_to_dynamo(execution)
         )
 
-
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
         response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
@@ -197,13 +196,11 @@ class DynamoDbAdapter(BaseDBAdapter):
             )
         return ret_val
 
-
     def open_transaction(self):
         pass
-    
+
     def commit_transaction(self):
         pass
-
 
     def rollback_transaction(self):
         pass

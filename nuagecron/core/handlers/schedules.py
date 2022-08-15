@@ -22,7 +22,10 @@ class ScheduleHandler:
     def upsert_schedule_set(self, payload: dict) -> Dict[str, List[Schedule]]:
         new_schedule_set = ScheduleSet(**payload)
         new_schedules = new_schedule_set.schedules
-        old_schedules: Dict[str, Schedule] = { x.schedule_id: x for x in self.db_adapter.get_schedule_set(new_schedule_set.project_stack)}
+        old_schedules: Dict[str, Schedule] = {
+            x.schedule_id: x
+            for x in self.db_adapter.get_schedule_set(new_schedule_set.project_stack)
+        }
         keys_to_delete = old_schedules.keys() - new_schedules.keys()
         keys_to_add = new_schedules.keys() - old_schedules.keys()
         keys_to_update = set(new_schedules.keys()).intersection(old_schedules.keys())
@@ -32,19 +35,25 @@ class ScheduleHandler:
         for key in keys_to_add:
             put_list.append(new_schedules[key])
         for key in keys_to_update:
-            updated_dict = old_schedules[key].dict(exclude_unset=True).update(new_schedules[key].dict(exclude_unset=True))
+            updated_dict = (
+                old_schedules[key]
+                .dict(exclude_unset=True)
+                .update(new_schedules[key].dict(exclude_unset=True))
+            )
             updated = Schedule(**updated_dict)
             update_list.append(updated)
         for key in keys_to_delete:
             delete_list.append(old_schedules[key])
-        
+
         for x in put_list:
             self.db_adapter.put_schedule(x)
         for x in update_list:
-            self.db_adapter.update_schedule(x.schedule_id, x.dict(exclude_unset=True, exclude_defaults=True))
+            self.db_adapter.update_schedule(
+                x.schedule_id, x.dict(exclude_unset=True, exclude_defaults=True)
+            )
         for x in delete_list:
             self.db_adapter.delete_schedule(x.schedule_id)
-        return {'added': put_list, 'deleted': delete_list, 'updated': update_list}
+        return {"added": put_list, "deleted": delete_list, "updated": update_list}
 
     def get_schedule(
         self, name: str, project_stack: Optional[str] = None
@@ -65,7 +74,9 @@ class ScheduleHandler:
         Schedule(
             **current_schedule
         )  # This tests to see if the changes to the schedule pass validation
-        return self.db_adapter.update_schedule(get_schedule_id(name, project_stack), current_schedule.dict())
+        return self.db_adapter.update_schedule(
+            get_schedule_id(name, project_stack), current_schedule.dict()
+        )
 
     def apply_overrides_to_schedule(
         self, name: str, project_stack: Optional[str], payload: dict

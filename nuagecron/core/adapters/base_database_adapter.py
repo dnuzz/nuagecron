@@ -53,7 +53,7 @@ class BaseDBAdapter(ABC):
     @abstractmethod
     def open_transaction(self):
         raise NotImplementedError
-    
+
     @abstractmethod
     def commit_transaction(self):
         raise NotImplementedError

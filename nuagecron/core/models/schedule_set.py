@@ -13,12 +13,14 @@ class ScheduleSet(BaseModel):
     @root_validator(pre=True)
     def root_validate_schedule_set(cls, values):
         if schedules := values.get("schedules"):
-            values['schedules'] = dict()
+            values["schedules"] = dict()
             if not isinstance(schedules, list):
-                raise ValueError('Please specify schedules as a list when creating a schedule set')
+                raise ValueError(
+                    "Please specify schedules as a list when creating a schedule set"
+                )
             for schedule in schedules:
                 updated_schedule = values.get("defaults", {}).update(schedules)
                 updated_schedule["project_stack"] = values["project_stack"]
                 s = Schedule(**updated_schedule)
-                values['schedules'][s.schedule_id] = s
+                values["schedules"][s.schedule_id] = s
         return values

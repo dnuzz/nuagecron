@@ -43,4 +43,3 @@ class Schedule(BaseModel):
         values["next_run"] = int(get_next_runtime(values["cron"]).timestamp())
         values["schedule_id"] = get_schedule_id(values["name"], values["project_stack"])
         return values
-

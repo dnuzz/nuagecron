@@ -74,13 +74,12 @@ class MockDatabaseAdapter(BaseDBAdapter):
 
     def open_transaction(self):
         pass
-    
+
     def commit_transaction(self):
         pass
 
     def rollback_transaction(self):
         pass
-
 
 
 class MockComputeAdapter(BaseComputeAdapter):
