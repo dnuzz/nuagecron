@@ -1,5 +1,5 @@
 from .adapters import MockComputeAdapter, MockDatabaseAdapter, MockExecutor
-from core.models.executions import Execution
+from nuagecron.core.models.executions import Execution
 from nuagecron.core.models.schedules import Schedule
 from nuagecron.core.functions.executor import main as executor_main
 from nuagecron.core.functions.updater import main as updater_main
