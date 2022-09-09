@@ -42,7 +42,7 @@ class MockDatabaseAdapter(BaseDBAdapter):
 
     def update_schedule(self, schedule_id: str, update: dict):
         for k, v in update.items():
-            self.schedules[schedule_id].__setattr__(k, v)
+            setattr(self.schedules[schedule_id], k, v)
 
     def delete_schedule(self, schedule_id: str):
         self.schedules.pop(schedule_id, None)

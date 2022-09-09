@@ -15,7 +15,10 @@ class ScheduleHandler:
         self.compute_adapter = compute_adapter
 
     def create_schedule(self, payload: dict) -> Schedule:
+        if "original_settings" in payload:
+            del payload["original_settings"]
         schedule = Schedule(**payload)
+        schedule.original_settings = payload
         self.db_adapter.put_schedule(schedule)
         return schedule
 
@@ -66,29 +69,30 @@ class ScheduleHandler:
     def update_schedule(
         self, name: str, project_stack: Optional[str] = None, payload: dict = {}
     ) -> Schedule:
-        if "original_settings" in payload:
-            del payload["original_settings"]
         schedule_id = get_schedule_id(name, project_stack)
         current_schedule = self.db_adapter.get_schedule(schedule_id)
-        current_schedule.dict().update(payload)
+        schedule_dict = current_schedule.dict()
+        schedule_dict.update(payload)
+        payload["original_settings"] = schedule_dict["original_settings"]
+        payload["original_settings"].update(payload)
         Schedule(
-            **current_schedule
+            **schedule_dict
         )  # This tests to see if the changes to the schedule pass validation
         return self.db_adapter.update_schedule(
-            get_schedule_id(name, project_stack), current_schedule.dict()
+            get_schedule_id(name, project_stack), payload
         )
 
     def apply_overrides_to_schedule(
         self, name: str, project_stack: Optional[str], payload: dict
     ) -> Schedule:
-        schedule_id = get_schedule_id(name, project_stack)
-        schedule = self.db_adapter.get_schedule(schedule_id)
-        schedule_dict = schedule.dict()
-        schedule_dict.update(payload)
-        Schedule(
-            **schedule_dict
-        )  # TODO add better validation that the schedule updates were appropriate
+        if "original_settings" in payload:
+            del payload["original_settings"]
         payload["overrides_applied"] = True
+        schedule_id = get_schedule_id(name, project_stack)
+        current_schedule = self.db_adapter.get_schedule(schedule_id)
+        schedule_dict = current_schedule.dict()
+        schedule_dict.update(payload)
+        Schedule(**schedule_dict)
         self.db_adapter.update_schedule(schedule_id, payload)
         return self.db_adapter.get_schedule(schedule_id)
 
