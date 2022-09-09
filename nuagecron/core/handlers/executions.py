@@ -35,14 +35,14 @@ class ExecutionHandler:
         return self.db_adapter.get_execution(schedule_id, execution_time)
 
     def create_execution(
-        self, name: str, project_stack: Optional[str], overrides: Optional[dict]
+        self, name: str, project_stack: Optional[str], overrides: Optional[dict] = None
     ) -> Execution:
         schedule_id = get_schedule_id(name, project_stack)
         schedule = self.db_adapter.get_schedule(schedule_id)
         schedule_as_dict = schedule.dict()
         if overrides:
             schedule_as_dict.update(overrides)
-        schedule_as_dict["execution_time"] = datetime.utcnow().timestamp()
+        schedule_as_dict["execution_time"] = int(datetime.utcnow().timestamp())
         schedule_as_dict["status"] = ExecutionStatus.ready
         new_execution = Execution(**schedule_as_dict)
         self.db_adapter.put_execution(new_execution)
@@ -54,3 +54,4 @@ class ExecutionHandler:
             },
             sync=False,
         )
+        return new_execution

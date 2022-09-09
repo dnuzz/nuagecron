@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Dict, List, Optional
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
@@ -99,5 +100,7 @@ class ScheduleHandler:
     def reset_schedule(self, name: str, project_stack: Optional[str]) -> bool:
         schedule_id = get_schedule_id(name, project_stack)
         schedule = self.db_adapter.get_schedule(schedule_id)
-        self.db_adapter.update_schedule(schedule_id, schedule.original_settings)
+        payload = deepcopy(schedule.original_settings)
+        payload["overrides_applied"] = False
+        self.db_adapter.update_schedule(schedule_id, payload)
         return True
