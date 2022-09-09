@@ -7,7 +7,7 @@ from nuagecron.core.executors import register_executor
 from nuagecron.core.models.executions import Execution, ExecutionStatus
 
 from nuagecron.core.models.schedules import Schedule
-from nuagecron import SERVICE_NAME
+from nuagecron.core import SERVICE_NAME
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 from nuagecron.core.functions.executor import main as executor_main

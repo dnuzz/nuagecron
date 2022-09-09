@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "A multi-tenant serverless scheduler"
 authors = ["Daniel Nuzzo-Mueller <dnuzzomueller@gmail.com>"]
 license = "MIT License"
-
+packages = [
+    {from = "nuagecron", include = "core"},
+    {from = "nuagecron", include = "adapters"},
+    {from = "nuagecron", include = "cli"}
+]
 
 
 [tool.poetry.dependencies]

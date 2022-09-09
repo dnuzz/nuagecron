@@ -5,11 +5,11 @@ import boto3
 from dynamodb_json import json_util
 from pydantic import BaseModel
 
-from nuagecron import SERVICE_NAME
-from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
-from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
-from nuagecron.core.models.executions import Execution
-from nuagecron.core.models.schedules import Schedule
+from ...adapters import SERVICE_NAME
+from core.adapters.base_compute_adapter import BaseComputeAdapter
+from core.adapters.base_database_adapter import BaseDBAdapter
+from core.models.executions import Execution
+from core.models.schedules import Schedule
 
 
 def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:

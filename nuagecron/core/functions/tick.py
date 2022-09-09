@@ -1,7 +1,7 @@
 from time import time
 from typing import Any
 
-from nuagecron import SERVICE_NAME
+from nuagecron.core import SERVICE_NAME
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.models.executions import Execution, ExecutionStatus
