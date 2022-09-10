@@ -19,7 +19,6 @@ class MockDatabaseAdapter(BaseDBAdapter):
     def __init__(self):
         self.schedules: Dict[str, Schedule] = {}
         self.executions: Dict[str, Dict[int, Execution]] = defaultdict(dict)
-        self.executions_by_id: Dict[str, Execution] = {}
         self.schedules_set: Dict[str, List[str]] = defaultdict(list)
 
     def get_schedule(self, schedule_id: str) -> Optional[Schedule]:
@@ -48,7 +47,11 @@ class MockDatabaseAdapter(BaseDBAdapter):
         self.schedules.pop(schedule_id, None)
 
     def get_execution_by_id(self, execution_id: str) -> Optional[Execution]:
-        return self.executions_by_id.get(execution_id)
+        for s_id, ex_list in self.executions.items():
+            for ex_time, ex in ex_list.items():
+                if ex.execution_id == execution_id:
+                    return ex
+        return None
 
     def get_execution(self, schedule_id: str, execution_time: int) -> Execution:
         return self.executions[schedule_id][execution_time]
@@ -65,12 +68,10 @@ class MockDatabaseAdapter(BaseDBAdapter):
     def update_execution(self, schedule_id: str, execution_time: int, update: dict):
         execution = self.executions[schedule_id][execution_time]
         for k, v in update.items():
-            execution.__setattr__(k, v)
+            setattr(execution, k, v)
 
     def put_execution(self, execution: Execution):
         self.executions[execution.schedule_id][execution.execution_time] = execution
-        if execution.execution_id:
-            self.executions_by_id[execution.execution_id] = execution
 
     def open_transaction(self):
         pass

@@ -20,7 +20,14 @@ class ExecutionHandler:
         execution = self.db_adapter.get_execution_by_id(execution_id)
         executor_class = EXECUTOR_MAP[execution.executor]
         executor = executor_class(execution)
-        return executor.try_kill()
+        killed = executor.try_kill()
+        if killed:
+            self.db_adapter.update_execution(
+                execution.schedule_id,
+                execution.execution_time,
+                {"status": ExecutionStatus.killed},
+            )
+        return killed
 
     def list_executions(
         self, name: str, project_stack: Optional[str], limit: int = 100

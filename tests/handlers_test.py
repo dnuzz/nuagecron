@@ -1,5 +1,6 @@
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
+from nuagecron.core.models.executions import ExecutionStatus
 from nuagecron.core.models.schedules import Schedule
 from .adapters import MockComputeAdapter, MockDatabaseAdapter
 
@@ -38,7 +39,10 @@ def test_execution_handler():
     execution = handler.create_execution(
         TEST_SCHEDULE["name"], TEST_SCHEDULE["project_stack"]
     )
+    assert execution.status == ExecutionStatus.running
     executions = handler.list_executions(
         TEST_SCHEDULE["name"], TEST_SCHEDULE["project_stack"]
     )
     assert executions
+    handler.kill_execution(execution.execution_id)
+    assert execution.status == ExecutionStatus.killed
