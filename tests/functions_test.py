@@ -4,7 +4,6 @@ from nuagecron.core.models.schedules import Schedule
 from nuagecron.core.functions.executor import main as executor_main
 from nuagecron.core.functions.updater import main as updater_main
 from nuagecron.core.functions.tick import main as tick_main
-from datetime import datetime
 
 DB_ADAPTER = MockDatabaseAdapter()
 COMPUTE_ADAPTER = MockComputeAdapter(DB_ADAPTER)
@@ -36,6 +35,8 @@ def test_executor():
 
 def test_updater():
     DB_ADAPTER.put_execution(TEST_EXECUTION)
-    updater_main(DB_ADAPTER, "test_id", {"status": "succeeded"})
-    execution = DB_ADAPTER.get_execution_by_id("test_id")
+    exec_id = TEST_EXECUTION.execution_id
+    updater_main(DB_ADAPTER, exec_id, {"status": "succeeded"})
+    execution = DB_ADAPTER.get_execution_by_id(exec_id)
     assert execution.status == ExecutionStatus.succeeded
+

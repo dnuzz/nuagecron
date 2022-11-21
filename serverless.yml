@@ -9,7 +9,7 @@ custom:
     dockerfile: Dockerfile
     slim: true
   wsgi:
-    app: nuagecron.api.app.app
+    app: api.app.app
     packRequirements: false
 
 package:
@@ -46,7 +46,7 @@ provider:
 
 functions:
   api:
-    handler: nuagecron.api.wsgi_handler.handler
+    handler: api.wsgi_handler.handler
     events:
       - http:
           path: /

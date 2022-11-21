@@ -1,6 +1,6 @@
 from click import command, echo
 
 
-@command()
+@command('nuagecron')
 def main():
     echo("Test main CLI")

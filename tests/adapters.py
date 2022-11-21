@@ -31,6 +31,10 @@ class MockDatabaseAdapter(BaseDBAdapter):
         )
         return ret_val[:count]
 
+    def get_schedules(self, start: str = None, count: int = 100) -> List[Schedule]:
+        schedules = list(self.schedules.values())
+        return schedules[:count]
+
     def put_schedule(self, schedule: Schedule):
         self.schedules[schedule.schedule_id] = schedule
 
@@ -73,14 +77,6 @@ class MockDatabaseAdapter(BaseDBAdapter):
     def put_execution(self, execution: Execution):
         self.executions[execution.schedule_id][execution.execution_time] = execution
 
-    def open_transaction(self):
-        pass
-
-    def commit_transaction(self):
-        pass
-
-    def rollback_transaction(self):
-        pass
 
 
 class MockComputeAdapter(BaseComputeAdapter):

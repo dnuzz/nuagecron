@@ -64,6 +64,9 @@ class ScheduleHandler:
     ) -> Optional[Schedule]:
         return self.db_adapter.get_schedule(get_schedule_id(name, project_stack))
 
+    def get_schedule_by_id(self, schedule_id: str) -> Optional[Schedule]:
+        return self.db_adapter.get_schedule(schedule_id)
+
     def get_schedule_set(self, project_stack: str) -> List[Schedule]:
         return self.db_adapter.get_schedule_set(project_stack)
 

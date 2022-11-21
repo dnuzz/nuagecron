@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A multi-tenant serverless scheduler"
 authors = ["Daniel Nuzzo-Mueller <dnuzzomueller@gmail.com>"]
 license = "MIT License"
-
+exclude = ["nuagecron/api/**"]
 
 
 [tool.poetry.dependencies]
@@ -25,10 +25,11 @@ mypy = "^0.920"
 black = "^22.3.0"
 isort = "^5.10.1"
 moto = "^3.1.16"
+ipykernel = "^6.17.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-nuagecron = "cli.cli:main"
+nuagecron = "nuagecron.cli.cli:main"

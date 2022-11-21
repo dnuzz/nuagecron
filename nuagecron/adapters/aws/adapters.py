@@ -76,7 +76,34 @@ class DynamoDbAdapter(BaseDBAdapter):
                 ExpressionAttributeValues={":T": {"S": "TRUE"}},
                 Limit=count,
                 ScanIndexForward=False,
-                LastEvaluatedKey=response["LastEvaluatedKey"],
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+            )
+            ret_val.extend(
+                [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
+            )
+        return ret_val
+
+    def get_schedules(self, start: str = None, count: int = 100) -> List[Schedule]:
+        if start:
+            addl_kwargs = {"ExclusiveStartKey": {"schedule_id": {"S": start}}}
+        else:
+            addl_kwargs = {}
+        response = self.dynamodb_client.query(
+            TableName=SCHEDULE_TABLE_NAME,
+            Limit=count,
+            ScanIndexForward=False,
+            **addl_kwargs
+        )
+        ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
+        while "LastEvaluatedKey" in response:
+            response = self.dynamodb_client.query(
+                TableName=SCHEDULE_TABLE_NAME,
+                IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
+                KeyConditionExpression="enabled = :T",
+                ExpressionAttributeValues={":T": {"S": "TRUE"}},
+                Limit=count,
+                ScanIndexForward=False,
+                ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             ret_val.extend(
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
@@ -149,7 +176,7 @@ class DynamoDbAdapter(BaseDBAdapter):
                 KeyConditionExpression="schedule_id = :V",
                 ExpressionAttributeValues={":V": {"S": schedule_id}},
                 ScanIndexForward=False,
-                LastEvaluatedKey=response["LastEvaluatedKey"],
+                ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             ret_val.extend(
                 [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
@@ -189,21 +216,12 @@ class DynamoDbAdapter(BaseDBAdapter):
                 ExpressionAttributeValues={":V": {"S": project_stack}},
                 Limit=100,
                 ScanIndexForward=False,
-                LastEvaluatedKey=response["LastEvaluatedKey"],
+                ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             ret_val.extend(
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
             )
         return ret_val
-
-    def open_transaction(self):
-        pass
-
-    def commit_transaction(self):
-        pass
-
-    def rollback_transaction(self):
-        pass
 
 
 class AWSComputeAdapter(BaseComputeAdapter):
