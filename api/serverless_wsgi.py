@@ -8,15 +8,15 @@ Inspired by: https://github.com/miserlou/zappa
 Author: Logan Raarup <logan@logan.dk>
 """
 import base64
+import io
 import json
 import os
 import sys
-
-from werkzeug._compat import BytesIO, string_types, to_bytes, wsgi_encoding_dance
-from werkzeug.datastructures import Headers, MultiDict, iter_multi_items
-from werkzeug.http import HTTP_STATUS_CODES
-from werkzeug.urls import url_encode, url_unquote, url_unquote_plus
+from werkzeug.datastructures import Headers, iter_multi_items, MultiDict
 from werkzeug.wrappers import Response
+from werkzeug.urls import url_encode, url_unquote, url_unquote_plus
+from werkzeug.http import HTTP_STATUS_CODES
+
 
 # List of MIME types that should not be base64 encoded. MIME types within `text/*`
 # are included by default.
@@ -116,15 +116,15 @@ def get_script_name(headers, request_context):
 def get_body_bytes(event, body):
     if event.get("isBase64Encoded", False):
         body = base64.b64decode(body)
-    if isinstance(body, string_types):
-        body = to_bytes(body, charset="utf-8")
+    if isinstance(body, str):
+        body = body.encode("utf-8")
     return body
 
 
 def setup_environ_items(environ, headers):
     for key, value in environ.items():
-        if isinstance(value, string_types):
-            environ[key] = wsgi_encoding_dance(value)
+        if isinstance(value, str):
+            environ[key] = value.encode("utf-8").decode("latin1", "replace")
 
     for key, value in headers.items():
         key = "HTTP_" + key.upper().replace("-", "_")
@@ -136,7 +136,7 @@ def setup_environ_items(environ, headers):
 def generate_response(response, event):
     returndict = {"statusCode": response.status_code}
 
-    if "multiValueHeaders" in event:
+    if "multiValueHeaders" in event and event["multiValueHeaders"]:
         returndict["multiValueHeaders"] = group_headers(response.headers)
     else:
         returndict["headers"] = split_headers(response.headers)
@@ -162,12 +162,27 @@ def generate_response(response, event):
     return returndict
 
 
+def strip_express_gateway_query_params(path):
+    """Contrary to regular AWS lambda HTTP events, Express Gateway
+    (https://github.com/ExpressGateway/express-gateway-plugin-lambda)
+    adds query parameters to the path, which we need to strip.
+    """
+    if "?" in path:
+        path = path.split("?")[0]
+    return path
+
+
 def handle_request(app, event, context):
     if event.get("source") in ["aws.events", "serverless-plugin-warmup"]:
         print("Lambda warming event received, skipping handler")
         return {}
 
-    if event.get("version") is None and event.get("isBase64Encoded") is None:
+    if (
+        event.get("version") is None
+        and event.get("isBase64Encoded") is None
+        and event.get("requestPath") is not None
+        and not is_alb_event(event)
+    ):
         return handle_lambda_integration(app, event, context)
 
     if event.get("version") == "2.0":
@@ -177,7 +192,7 @@ def handle_request(app, event, context):
 
 
 def handle_payload_v1(app, event, context):
-    if "multiValueHeaders" in event:
+    if "multiValueHeaders" in event and event["multiValueHeaders"]:
         headers = Headers(event["multiValueHeaders"])
     else:
         headers = Headers(event["headers"])
@@ -187,7 +202,7 @@ def handle_payload_v1(app, event, context):
     # If a user is using a custom domain on API Gateway, they may have a base
     # path in their URL. This allows us to strip it out via an optional
     # environment variable.
-    path_info = event["path"]
+    path_info = strip_express_gateway_query_params(event["path"])
     base_path = os.environ.get("API_GATEWAY_BASE_PATH")
     if base_path:
         script_name = "/" + base_path
@@ -195,7 +210,7 @@ def handle_payload_v1(app, event, context):
         if path_info.startswith(script_name):
             path_info = path_info[len(script_name) :]
 
-    body = event["body"] or ""
+    body = event.get("body") or ""
     body = get_body_bytes(event, body)
 
     environ = {
@@ -206,34 +221,24 @@ def handle_payload_v1(app, event, context):
         "REMOTE_ADDR": event.get("requestContext", {})
         .get("identity", {})
         .get("sourceIp", ""),
-        "REMOTE_USER": event.get("requestContext", {})
-        .get("authorizer", {})
+        "REMOTE_USER": (event.get("requestContext", {})
+                        .get("authorizer") or {})
         .get("principalId", ""),
         "REQUEST_METHOD": event.get("httpMethod", {}),
         "SCRIPT_NAME": script_name,
         "SERVER_NAME": headers.get("Host", "lambda"),
-        "SERVER_PORT": headers.get("X-Forwarded-Port", "80"),
+        "SERVER_PORT": headers.get("X-Forwarded-Port", "443"),
         "SERVER_PROTOCOL": "HTTP/1.1",
         "wsgi.errors": sys.stderr,
-        "wsgi.input": BytesIO(body),
+        "wsgi.input": io.BytesIO(body),
         "wsgi.multiprocess": False,
         "wsgi.multithread": False,
         "wsgi.run_once": False,
-        "wsgi.url_scheme": headers.get("X-Forwarded-Proto", "http"),
+        "wsgi.url_scheme": headers.get("X-Forwarded-Proto", "https"),
         "wsgi.version": (1, 0),
         "serverless.authorizer": event.get("requestContext", {}).get("authorizer"),
         "serverless.event": event,
         "serverless.context": context,
-        # TODO: Deprecate the following entries, as they do not comply with the WSGI
-        # spec. For custom variables, the spec says:
-        #
-        #   Finally, the environ dictionary may also contain server-defined variables.
-        #   These variables should be named using only lower-case letters, numbers, dots,
-        #   and underscores, and should be prefixed with a name that is unique to the
-        #   defining server or gateway.
-        "API_GATEWAY_AUTHORIZER": event.get("requestContext", {}).get("authorizer"),
-        "event": event,
-        "context": context,
     }
 
     environ = setup_environ_items(environ, headers)
@@ -249,7 +254,13 @@ def handle_payload_v2(app, event, context):
 
     script_name = get_script_name(headers, event.get("requestContext", {}))
 
-    path_info = event["rawPath"]
+    path_info = strip_express_gateway_query_params(event["rawPath"])
+    base_path = os.environ.get("API_GATEWAY_BASE_PATH")
+    if base_path:
+        script_name = "/" + base_path
+
+        if path_info.startswith(script_name):
+            path_info = path_info[len(script_name) :]
 
     body = event.get("body", "")
     body = get_body_bytes(event, body)
@@ -257,10 +268,10 @@ def handle_payload_v2(app, event, context):
     headers["Cookie"] = "; ".join(event.get("cookies", []))
 
     environ = {
-        "CONTENT_LENGTH": str(len(body)),
+        "CONTENT_LENGTH": str(len(body or "")),
         "CONTENT_TYPE": headers.get("Content-Type", ""),
         "PATH_INFO": url_unquote(path_info),
-        "QUERY_STRING": url_encode(event.get("queryStringParameters", {})),
+        "QUERY_STRING": event.get("rawQueryString", ""),
         "REMOTE_ADDR": event.get("requestContext", {})
         .get("http", {})
         .get("sourceIp", ""),
@@ -272,28 +283,18 @@ def handle_payload_v2(app, event, context):
         .get("method", ""),
         "SCRIPT_NAME": script_name,
         "SERVER_NAME": headers.get("Host", "lambda"),
-        "SERVER_PORT": headers.get("X-Forwarded-Port", "80"),
+        "SERVER_PORT": headers.get("X-Forwarded-Port", "443"),
         "SERVER_PROTOCOL": "HTTP/1.1",
         "wsgi.errors": sys.stderr,
-        "wsgi.input": BytesIO(body),
+        "wsgi.input": io.BytesIO(body),
         "wsgi.multiprocess": False,
         "wsgi.multithread": False,
         "wsgi.run_once": False,
-        "wsgi.url_scheme": headers.get("X-Forwarded-Proto", "http"),
+        "wsgi.url_scheme": headers.get("X-Forwarded-Proto", "https"),
         "wsgi.version": (1, 0),
         "serverless.authorizer": event.get("requestContext", {}).get("authorizer"),
         "serverless.event": event,
         "serverless.context": context,
-        # TODO: Deprecate the following entries, as they do not comply with the WSGI
-        # spec. For custom variables, the spec says:
-        #
-        #   Finally, the environ dictionary may also contain server-defined variables.
-        #   These variables should be named using only lower-case letters, numbers, dots,
-        #   and underscores, and should be prefixed with a name that is unique to the
-        #   defining server or gateway.
-        "API_GATEWAY_AUTHORIZER": event.get("requestContext", {}).get("authorizer"),
-        "event": event,
-        "context": context,
     }
 
     environ = setup_environ_items(environ, headers)
@@ -310,7 +311,7 @@ def handle_lambda_integration(app, event, context):
 
     script_name = get_script_name(headers, event)
 
-    path_info = event["requestPath"]
+    path_info = strip_express_gateway_query_params(event["requestPath"])
 
     for key, value in event.get("path", {}).items():
         path_info = path_info.replace("{%s}" % key, value)
@@ -321,7 +322,7 @@ def handle_lambda_integration(app, event, context):
     body = get_body_bytes(event, body)
 
     environ = {
-        "CONTENT_LENGTH": str(len(body)),
+        "CONTENT_LENGTH": str(len(body or "")),
         "CONTENT_TYPE": headers.get("Content-Type", ""),
         "PATH_INFO": url_unquote(path_info),
         "QUERY_STRING": url_encode(event.get("query", {})),
@@ -330,28 +331,18 @@ def handle_lambda_integration(app, event, context):
         "REQUEST_METHOD": event.get("method", ""),
         "SCRIPT_NAME": script_name,
         "SERVER_NAME": headers.get("Host", "lambda"),
-        "SERVER_PORT": headers.get("X-Forwarded-Port", "80"),
+        "SERVER_PORT": headers.get("X-Forwarded-Port", "443"),
         "SERVER_PROTOCOL": "HTTP/1.1",
         "wsgi.errors": sys.stderr,
-        "wsgi.input": BytesIO(body),
+        "wsgi.input": io.BytesIO(body),
         "wsgi.multiprocess": False,
         "wsgi.multithread": False,
         "wsgi.run_once": False,
-        "wsgi.url_scheme": headers.get("X-Forwarded-Proto", "http"),
+        "wsgi.url_scheme": headers.get("X-Forwarded-Proto", "https"),
         "wsgi.version": (1, 0),
         "serverless.authorizer": event.get("enhancedAuthContext"),
         "serverless.event": event,
         "serverless.context": context,
-        # TODO: Deprecate the following entries, as they do not comply with the WSGI
-        # spec. For custom variables, the spec says:
-        #
-        #   Finally, the environ dictionary may also contain server-defined variables.
-        #   These variables should be named using only lower-case letters, numbers, dots,
-        #   and underscores, and should be prefixed with a name that is unique to the
-        #   defining server or gateway.
-        "API_GATEWAY_AUTHORIZER": event.get("enhancedAuthContext"),
-        "event": event,
-        "context": context,
     }
 
     environ = setup_environ_items(environ, headers)
