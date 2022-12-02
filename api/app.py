@@ -6,7 +6,7 @@ from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
 
-app = Flask(__name__, static_url_path="", static_folder="frontend")
+app = Flask(__name__, static_url_path="", static_folder="../frontend/build")
 
 DB_ADAPTER = DynamoDbAdapter()
 COMPUTE_ADAPTER = AWSComputeAdapter()
@@ -62,4 +62,4 @@ def resource_not_found(e):
 
 @app.route("/", defaults={"path": ""})
 def serve(path):
-    return send_from_directory(app.static_folder, "public/index.html")
+    return send_from_directory(app.static_folder, "index.html")
