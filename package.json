@@ -1,5 +1,5 @@
 {
-  "name": "nuagecron_frontend",
+  "name": "nuagecron",
   "version": "1.0.0",
   "description": "Example of a Python Flask API service backed by DynamoDB with traditional Serverless Framework",
   "author": "",
