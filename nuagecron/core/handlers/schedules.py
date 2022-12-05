@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from nuagecron.core.adapters.base_compute_adapter import BaseComputeAdapter
 from nuagecron.core.adapters.base_database_adapter import BaseDBAdapter
 from nuagecron.core.models.utils import get_schedule_id
@@ -14,6 +14,11 @@ class ScheduleHandler:
     ) -> None:
         self.db_adapter = db_adapter
         self.compute_adapter = compute_adapter
+
+    def get_all_schedules(
+        self, start: str = None
+    ) -> Tuple[List[Schedule], Optional[str]]:
+        return self.db_adapter.get_schedules(start)
 
     def create_schedule(self, payload: dict) -> Schedule:
         if "original_settings" in payload:

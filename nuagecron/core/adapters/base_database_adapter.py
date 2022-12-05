@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from nuagecron.core.models.executions import Execution
 from nuagecron.core.models.schedules import Schedule
@@ -11,11 +11,13 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
+    def get_schedules_to_run(self, count: int = 100) -> Tuple[List[Schedule], str]:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_schedules(self, start: str = None, count: int = 100) -> List[Schedule]:
+    def get_schedules(
+        self, start: str = None, count: int = 100
+    ) -> Tuple[List[Schedule], Optional[str]]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -43,7 +45,9 @@ class BaseDBAdapter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_executions(self, schedule_id: str, count: int = 100) -> List[Execution]:
+    def get_executions(
+        self, schedule_id: str, count: int = 100
+    ) -> Tuple[List[Execution], str]:
         raise NotImplementedError()
 
     @abstractmethod

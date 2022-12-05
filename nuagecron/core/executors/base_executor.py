@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, Optional
 
 from pydantic import BaseModel
 
@@ -36,7 +36,7 @@ class BaseExecutor(ABC):
     @abstractmethod
     def execute(
         self,
-    ) -> Tuple[dict, ExecutionStatus]:
+    ) -> Tuple[Optional[str], ExecutionStatus]:
         """
         This should execute the contents and return both an execution status and any attribute updates that need to be performed
         """

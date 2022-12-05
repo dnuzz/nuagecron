@@ -1,9 +1,13 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 from nuagecron.core.executors import BaseExecutor
 from nuagecron.core.executors import register_executor
 from nuagecron.core.models.executions import ExecutionStatus
 from nuagecron.core.models.executions import Execution
+import boto3
+import json
+
+LAMBDA_CLIENT = boto3.client("lambda")
 
 
 @register_executor
@@ -19,14 +23,18 @@ class LambdaExecutor(BaseExecutor):
     """
 
     def validate(self):
-        raise NotImplementedError()
+        resp = LAMBDA_CLIENT.invoke(
+            FunctionName=self.payload["lambda_name"], InvocationType="DryRun"
+        )
+        if resp["StatusCode"] != 204:
+            raise ValueError("Could not validate function")
 
     """
     This should prepare the parameters and store them locally for a run that will happen immedaitely after. This can include expanding templates.
     """
 
     def prepare(self):
-        raise NotImplementedError()
+        return
 
     """
     This should set the invoke_time and the execution_id on the execution object as well as perform the actions requested. It should return an Optional execution_id for tracking purposes and the state the execution is in
@@ -35,9 +43,18 @@ class LambdaExecutor(BaseExecutor):
     def execute(
         self,
     ) -> Tuple[
-        dict, ExecutionStatus
+        Optional[str], ExecutionStatus
     ]:  # This should return the execution_id and ExecutionStatus
-        raise NotImplementedError()
+        resp = LAMBDA_CLIENT.invoke(
+            FunctionName=self.payload["lambda_name"],
+            InvocationType="Event",
+            Payload=json.dumps(
+                self.payload.get("lambda_payload", {}), default=str
+            ).encode(),
+        )
+        if resp["StatusCode"] != 202 or resp.get("FunctionError"):
+            return None, ExecutionStatus.failed
+        return None, ExecutionStatus.succeeded
 
     """
     When an update is passed to this it should update the execution and the update_time attributes

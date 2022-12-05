@@ -1,5 +1,10 @@
 node_modules
 .serverless/*
+.vscode/*
+.pytest_cache
+.mypy_cache
 __pycache__
 dist/*
 yarn-error.log
+*.env*
+*_cache

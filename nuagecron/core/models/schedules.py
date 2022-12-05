@@ -10,15 +10,16 @@ from nuagecron.core.executors import EXECUTOR_MAP
 from nuagecron.core.models.executions import ExecutionStatus
 from nuagecron.core.models.utils import get_next_runtime, get_schedule_id
 
-EXECUTION_STATUS_LIMIT = int(os.environ.get('NUAGECRON_EXECUTION_STATUS_LIMIT', 5))
+EXECUTION_STATUS_LIMIT = int(os.environ.get("NUAGECRON_EXECUTION_STATUS_LIMIT", 5))
+
 
 class ConcurrencyAction(str, Enum):
     ready = "ready"
     block = "block"
     skip = "skip"
 
-class Schedule(BaseModel):
 
+class Schedule(BaseModel):
     class Config:
         validate_assignment = True
 
@@ -52,8 +53,10 @@ class Schedule(BaseModel):
 
     def upsert_execution_history(self, time: int, status: ExecutionStatus) -> None:
         self.execution_history[time] = status
-        sorted_keys = sorted(self.execution_history.keys(), reverse=True)[:EXECUTION_STATUS_LIMIT:]
-        self.execution_history = { x: self.execution_history[x] for x in sorted_keys}
+        sorted_keys = sorted(self.execution_history.keys(), reverse=True)[
+            :EXECUTION_STATUS_LIMIT:
+        ]
+        self.execution_history = {x: self.execution_history[x] for x in sorted_keys}
 
     def concurrency_limit(self) -> ConcurrencyAction:
         counts = Counter(self.execution_history.values())
@@ -66,4 +69,6 @@ class Schedule(BaseModel):
             return ConcurrencyAction.block
         elif self.concurrent_runs == -1:
             return ConcurrencyAction.ready
-        raise ValueError('There is something wrong with the logic in the concurrency limits')
+        raise ValueError(
+            "There is something wrong with the logic in the concurrency limits"
+        )

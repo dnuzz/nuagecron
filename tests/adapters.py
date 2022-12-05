@@ -78,7 +78,6 @@ class MockDatabaseAdapter(BaseDBAdapter):
         self.executions[execution.schedule_id][execution.execution_time] = execution
 
 
-
 class MockComputeAdapter(BaseComputeAdapter):
     def __init__(self, db_adapter: MockDatabaseAdapter):
         self.db_adapter = db_adapter

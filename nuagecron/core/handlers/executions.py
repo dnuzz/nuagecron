@@ -30,10 +30,17 @@ class ExecutionHandler:
         return killed
 
     def list_executions(
-        self, name: str, project_stack: Optional[str], limit: int = 100
+        self,
+        name: str,
+        project_stack: Optional[str],
+        start_key: str = None,
+        limit: int = 100,
     ) -> List[Execution]:
         schedule_id = get_schedule_id(name, project_stack)
-        return self.db_adapter.get_executions(schedule_id, limit)
+        return self.db_adapter.get_executions(
+            schedule_id,
+            count=limit,
+        )
 
     def get_execution(
         self, name: str, project_stack: Optional[str], execution_time: int

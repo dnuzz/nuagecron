@@ -39,4 +39,3 @@ def test_updater():
     updater_main(DB_ADAPTER, exec_id, {"status": "succeeded"})
     execution = DB_ADAPTER.get_execution_by_id(exec_id)
     assert execution.status == ExecutionStatus.succeeded
-

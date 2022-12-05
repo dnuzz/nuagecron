@@ -1,26 +1,19 @@
 import logo from './logo.svg';
 import './App.css';
-import { TableHTMLAttributes } from 'react';
+import { ScheduleTable } from './schedules/MaterialTable'
+import { ThemeProvider, createTheme } from '@mui/material';
+import NuagecronApi from './Api';
+
+const api = new NuagecronApi('http://localhost:5000')
 
 function App() {
+  const defaultMaterialTheme = createTheme();
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <header className='App'><p>Test</p></header>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <div className="App" style={{ maxWidth: "100%" }}>
+      <ThemeProvider theme={defaultMaterialTheme}>
+    <ScheduleTable api={new NuagecronApi('http://localhost:5000')}/>
+    </ThemeProvider>
+  </div>
   );
 }
 

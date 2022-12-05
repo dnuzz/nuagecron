@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import boto3
 from dynamodb_json import json_util
@@ -34,7 +34,7 @@ def model_to_dynamo(model: BaseModel):
         model_as_dict["enabled"] = "TRUE"
     else:
         model_as_dict["enabled"] = "FALSE"
-    return dictionary_to_dynamo(model.dict())
+    return dictionary_to_dynamo(model_as_dict)
 
 
 def dynamo_to_dict(dynamo_object: dict):
@@ -58,7 +58,7 @@ class DynamoDbAdapter(BaseDBAdapter):
             return Schedule(**dynamo_to_dict(payload["Item"]))
         return None
 
-    def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
+    def get_schedules_to_run(self, count: int = 100) -> Tuple[List[Schedule], str]:
         response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
@@ -68,6 +68,8 @@ class DynamoDbAdapter(BaseDBAdapter):
             ScanIndexForward=False,
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
+        if len(ret_val) >= count:
+            return ret_val, ""
         while "LastEvaluatedKey" in response:
             response = self.dynamodb_client.query(
                 TableName=SCHEDULE_TABLE_NAME,
@@ -81,34 +83,35 @@ class DynamoDbAdapter(BaseDBAdapter):
             ret_val.extend(
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
             )
-        return ret_val
+            if len(ret_val) >= count:
+                return ret_val, response["LastEvaluatedKey"]
+        return ret_val, response.get("LastEvaluatedKey")
 
-    def get_schedules(self, start: str = None, count: int = 100) -> List[Schedule]:
+    def get_schedules(
+        self, start: str = None, count: int = 100
+    ) -> Tuple[List[Schedule], Optional[str]]:
         if start:
             addl_kwargs = {"ExclusiveStartKey": {"schedule_id": {"S": start}}}
         else:
             addl_kwargs = {}
-        response = self.dynamodb_client.query(
-            TableName=SCHEDULE_TABLE_NAME,
-            Limit=count,
-            ScanIndexForward=False,
-            **addl_kwargs
+        response = self.dynamodb_client.scan(
+            TableName=SCHEDULE_TABLE_NAME, Limit=count, **addl_kwargs
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
+        if len(ret_val) >= count:
+            return ret_val, None
         while "LastEvaluatedKey" in response:
-            response = self.dynamodb_client.query(
+            response = self.dynamodb_client.scan(
                 TableName=SCHEDULE_TABLE_NAME,
-                IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
-                KeyConditionExpression="enabled = :T",
-                ExpressionAttributeValues={":T": {"S": "TRUE"}},
                 Limit=count,
-                ScanIndexForward=False,
                 ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             ret_val.extend(
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
             )
-        return ret_val
+            if len(ret_val) >= count:
+                return ret_val, response["LastEvaluatedKey"]
+        return ret_val, response.get("LastEvaluatedKey")
 
     def put_schedule(self, schedule: Schedule):
         self.dynamodb_client.put_item(
@@ -160,15 +163,24 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
         return Execution(**dynamo_to_dict(payload))
 
-    def get_executions(self, schedule_id: str, count: int = 25) -> List[Execution]:
+    def get_executions(
+        self, schedule_id: str, count: int = 25, start: str = None
+    ) -> Tuple[List[Execution], Optional[str]]:
+        if start:
+            addl_kwargs = {"ExclusiveStartKey": {"schedule_id": {"S": start}}}
+        else:
+            addl_kwargs = {}
         response = self.dynamodb_client.query(
             TableName=EXECUTION_TABLE_NAME,
             Limit=count,
             KeyConditionExpression="schedule_id = :V",
             ExpressionAttributeValues={":V": {"S": schedule_id}},
             ScanIndexForward=False,
+            **addl_kwargs,
         )
         ret_val = [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
+        if len(ret_val) >= count:
+            return ret_val, None
         while "LastEvaluatedKey" in response:
             response = self.dynamodb_client.query(
                 TableName=EXECUTION_TABLE_NAME,
@@ -181,7 +193,9 @@ class DynamoDbAdapter(BaseDBAdapter):
             ret_val.extend(
                 [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
             )
-        return ret_val
+            if len(ret_val) >= count:
+                return ret_val, response["LastEvaluatedKey"]
+        return ret_val, response.get("LastEvaluatedKey")
 
     def update_execution(self, schedule_id: str, execution_time: int, update: dict):
         self.dynamodb_client.update_item(

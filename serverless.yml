@@ -15,8 +15,10 @@ custom:
 package:
   exclude:
     - node_modules/**
+    - frontend/**
   include:
     - servicename.json
+    - frontend/build/**
 
 provider:
   name: aws
