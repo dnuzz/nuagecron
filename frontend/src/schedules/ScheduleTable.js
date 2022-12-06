@@ -58,6 +58,6 @@ export const ScheduleTable = (api) => {
 
   
 return (
-  <MaterialTable title="Employee Details" data={JSON.parse(JSON.stringify(rows))} columns={columns} />
+  <MaterialTable title="Schedules" data={JSON.parse(JSON.stringify(rows))} columns={columns} />
 );
 };
