@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { ScheduleTable } from './schedules/MaterialTable'
+import { ScheduleTable } from './schedules/ScheduleTable'
 import { ThemeProvider, createTheme } from '@mui/material';
 import NuagecronApi from './Api';
 
