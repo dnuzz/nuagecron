@@ -5,13 +5,14 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import NuagecronApi from './Api';
 
 const api = new NuagecronApi('http://localhost:5000')
+const defaultMaterialTheme = createTheme();
 
 function App() {
-  const defaultMaterialTheme = createTheme();
+  
   return (
     <div className="App" style={{ maxWidth: "100%" }}>
       <ThemeProvider theme={defaultMaterialTheme}>
-    <ScheduleTable api={new NuagecronApi('http://localhost:5000')}/>
+    <ScheduleTable api={api}/>
     </ThemeProvider>
   </div>
   );

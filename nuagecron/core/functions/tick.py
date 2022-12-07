@@ -15,7 +15,7 @@ LOG = getLogger()
 def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
     start_time = time()
     timeout = 60 * 14  # about 14 minutes
-    ready_schedules = db_adapter.get_schedules_to_run()
+    ready_schedules, _ = db_adapter.get_schedules_to_run()
     while ready_schedules:
         for schedule in ready_schedules:
             # TODO check for concurrent_run limits using execution_history
@@ -59,4 +59,4 @@ def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
             if time() - start_time > timeout:
                 LOG.info("Timeout limit hit. Ending run of tick")
                 return
-        ready_schedules = db_adapter.get_schedules_to_run()
+        ready_schedules, _ = db_adapter.get_schedules_to_run()
