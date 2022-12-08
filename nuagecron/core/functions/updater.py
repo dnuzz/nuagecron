@@ -19,4 +19,6 @@ def main(db_adapter: BaseDBAdapter, execution_id: str, update_payload: dict):
             schedule.upsert_execution_history(
                 execution.execution_time, update["status"]
             )
-            db_adapter.update_schedule(execution.schedule_id, {})
+            db_adapter.update_schedule(
+                execution.schedule_id, {"execution_history": schedule.execution_history}
+            )

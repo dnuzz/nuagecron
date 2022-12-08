@@ -1,5 +1,4 @@
 from time import time
-from typing import Any
 from logging import getLogger
 
 from nuagecron import SERVICE_NAME
@@ -15,7 +14,7 @@ LOG = getLogger()
 def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
     start_time = time()
     timeout = 60 * 14  # about 14 minutes
-    ready_schedules, _ = db_adapter.get_schedules_to_run()
+    ready_schedules = db_adapter.get_schedules_to_run()
     while ready_schedules:
         for schedule in ready_schedules:
             # TODO check for concurrent_run limits using execution_history
@@ -49,9 +48,6 @@ def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
                 LOG.info(
                     f"Schedule {schedule.project_stack}/{schedule.name} was invoked with execution time {schedule.next_run}"
                 )
-                schedule.upsert_execution_history(
-                    schedule.next_run, ExecutionStatus.ready
-                )
                 schedule.next_run = int(get_next_runtime(schedule.cron).timestamp())
                 db_adapter.update_schedule(
                     schedule.schedule_id, {"next_run": schedule.next_run}
@@ -59,4 +55,4 @@ def main(compute_adapter: BaseComputeAdapter, db_adapter: BaseDBAdapter):
             if time() - start_time > timeout:
                 LOG.info("Timeout limit hit. Ending run of tick")
                 return
-        ready_schedules, _ = db_adapter.get_schedules_to_run()
+        ready_schedules = db_adapter.get_schedules_to_run()

@@ -58,7 +58,7 @@ class DynamoDbAdapter(BaseDBAdapter):
             return Schedule(**dynamo_to_dict(payload["Item"]))
         return None
 
-    def get_schedules_to_run(self, count: int = 100) -> Tuple[List[Schedule], str]:
+    def get_schedules_to_run(self, count: int = 100) -> List[Schedule]:
         response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
@@ -69,7 +69,7 @@ class DynamoDbAdapter(BaseDBAdapter):
         )
         ret_val = [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
         if len(ret_val) >= count:
-            return ret_val, ""
+            return ret_val
         while "LastEvaluatedKey" in response:
             response = self.dynamodb_client.query(
                 TableName=SCHEDULE_TABLE_NAME,
@@ -84,8 +84,8 @@ class DynamoDbAdapter(BaseDBAdapter):
                 [Schedule(**dynamo_to_dict(item)) for item in response["Items"]]
             )
             if len(ret_val) >= count:
-                return ret_val, response["LastEvaluatedKey"]
-        return ret_val, response.get("LastEvaluatedKey")
+                return ret_val
+        return ret_val
 
     def get_schedules(
         self, start: str = None, count: int = 100

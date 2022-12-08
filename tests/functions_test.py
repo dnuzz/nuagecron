@@ -24,6 +24,7 @@ TEST_EXECUTION = Execution(**EXECUTION_DICT)
 
 def test_tick():
     DB_ADAPTER.put_schedule(TEST_SCHEDULE)
+    DB_ADAPTER.update_schedule("test", {"next_run": 0})
     tick_main(COMPUTE_ADAPTER, DB_ADAPTER)
 
 
