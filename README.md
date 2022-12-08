@@ -1,9 +1,39 @@
 # Nuagecron - The serverless cloud scheduler
-Nuagecron is designed to answer the "How do I schedule my cloud based tasks?" Question. While there are solutions out there right now none of them meet the "serverless first" approach. No one wants their scheduler to go down because some unpinned package dependency killed all their workers or coordinator (*cough* Airflow *cough*) And having a single cron server is prone to failures and overloads. There are of course other pay-to-play options out there but sometimes you just want something running in your AWS account that you can manage, investigate and not really worry about if it is "up" but still have the ability to investigate it's behaviour (and even modify it for your use case!)
+Nuagecron is designed to answer the "How do I schedule my cloud based tasks?" Question. While there are solutions out there right now none of them meet the "serverless first" approach.
 
+## Why?
 
+AWS Cloudwatch events always seemed lacking. You couldn't investigate failures to invoke, couldn't invoke them in an adhoc manner and couldn't have more than 200 of them in an account. Airflow is a great tool for building DAGs, but it isn't really a scheduler at heart, it has scheduling functionality, but adding a schedule requires modifications of the DAG folder.
+
+The idea behind nuagecron is to create a cloud native cron service, with execution tracking, namespace support (was call them `project_stack`s), support for hundreds of tasks and a low operational cost. This really boils down to "I want cron to run in the cloud and kick off the resources I put in there". So nuagecron is built to provide a "scheduler as a service" to teams, where you define and deploy your resources to your cloud and then submit a schedule to nuagecron to kick those tasks off and monitor them (Some assmebly required, to be detailed later). This solution is capable of supporting multiple teams without conflicts and will *eventually* provide a visualization solution in the form of a web page.
+
+## Prerequisites
+
+You will need a few things to install this:
+
+* [Python poetry](https://python-poetry.org/)
+* [Node (I personally recommend installing NVM)](https://github.com/nvm-sh/nvm)
+* [Yarn](https://yarnpkg.com/)
+* [Docker](https://www.docker.com/)
+
+## Developer Setup
+
+1. `poetry install`
+2. `yarn install`
+
+## Deployment
+
+### AWS
+As of right now only AWS deployments are supported. In the future we will try to support multiple cloud providers and Kubernetes but we want to walk before we try to run here.
+* Set up your local AWS developer credentials
+* Run `./deploy.sh` (this should install things but serverless currently has an issue with spinning up multiple GSIs on Dynamo tables)
+
+## Web Interface
+
+As of right now this is a WIP as I try to learn React. It is set up so that you may start the web UI using `yarn start` and the backend using `flask run`. The web page will try to load any schedules it finds in the database.
 
 # Serverless Template Info
+(Template from the folks at [serverless-wsgi](https://github.com/logandk/serverless-wsgi))
 ## Anatomy of the template
 
 This template configures a single function, `api`, which is responsible for handling all incoming requests thanks to configured `http` events. To learn more about `http` event configuration options, please refer to [http event docs](https://www.serverless.com/framework/docs/providers/aws/events/apigateway/). As the events are configured in a way to accept all incoming requests, `Flask` framework is responsible for routing and handling requests internally. The implementation takes advantage of `serverless-wsgi`, which allows you to wrap WSGI applications such as Flask apps. To learn more about `serverless-wsgi`, please refer to corresponding [GitHub repository](https://github.com/logandk/serverless-wsgi). The template also relies on `serverless-python-requirements` plugin for packaging dependencies from `requirements.txt` file. For more details about `serverless-python-requirements` configuration, please refer to corresponding [GitHub repository](https://github.com/UnitedIncome/serverless-python-requirements).

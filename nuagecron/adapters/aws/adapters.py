@@ -30,10 +30,11 @@ def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
 
 def model_to_dynamo(model: BaseModel):
     model_as_dict = model.dict()
-    if model_as_dict["enabled"]:
-        model_as_dict["enabled"] = "TRUE"
-    else:
-        model_as_dict["enabled"] = "FALSE"
+    if isinstance(model, Schedule):
+        if model_as_dict["enabled"]:
+            model_as_dict["enabled"] = "TRUE"
+        else:
+            model_as_dict["enabled"] = "FALSE"
     return dictionary_to_dynamo(model_as_dict)
 
 
