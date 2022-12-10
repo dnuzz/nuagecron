@@ -3,6 +3,8 @@ from flask_cors import CORS
 from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
+from nuagecron.core.functions.tick import main as tick_main
+
 
 app = Flask(__name__, static_url_path="", static_folder="../frontend/build")
 CORS(app)
@@ -72,6 +74,12 @@ def get_executions(schedule_id: str):
 def get_execution(schedule_id: str, execution_time: int):
     execution = DB_ADAPTER.get_execution(schedule_id, execution_time)
     return jsonify(execution)
+
+
+@app.route("/tick", methods=["post"])
+def run_tick():
+    tick_main(COMPUTE_ADAPTER, DB_ADAPTER)
+    return make_response({}, 202)
 
 
 @app.errorhandler(404)
