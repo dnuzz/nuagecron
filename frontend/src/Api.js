@@ -13,6 +13,11 @@ class NuagecronApi {
         console.log('Call to schedules was made')
         return this.api.get('/schedules', start_key ? { params: {start_key: start_key}} : null)
     }
+
+    async getSchedule(name, project_stack = null) {
+        console.log('Call to schedule was made')
+        return this.api.get(`/schedule/${name}${ project_stack ? '/' + project_stack : ''}`)
+    }
 }
 
 export default NuagecronApi

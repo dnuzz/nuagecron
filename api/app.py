@@ -23,7 +23,7 @@ def get_schedules():
     return jsonify([s.dict() for s in schedules])
 
 
-@app.route("/schedules/<string:name>/<string:project_stack>")
+@app.route("/schedule/<string:name>/<string:project_stack>")
 def get_schedule(name: str, project_stack: str = None):
     schedule = SCHEDULE_HANDLER.get_schedule(name, project_stack)
 
