@@ -16,6 +16,8 @@ const cleanData = (dicts) => {
 
 export const ScheduleTable = (params) => {
 
+  const { data } = useLoaderData();
+
   const init_columns = [
     {
       title: "Name",
@@ -55,7 +57,7 @@ export const ScheduleTable = (params) => {
     }
   ]
 
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState(cleanData(data))
   const [columns, setColumns] = useState(init_columns)
 
   useEffect(() => {

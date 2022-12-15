@@ -26,7 +26,8 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <ScheduleTable api={api}/>,
-    errorElement: <ErrorPage />
+    errorElement: <ErrorPage />,
+    loader: get_schedules
   },
   {
     path: "/schedule/:name/:project_stack",

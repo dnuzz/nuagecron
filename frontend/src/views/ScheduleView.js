@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Form } from 'react-router-dom'
+import { Form, Link } from 'react-router-dom'
 import { useLoaderData } from 'react-router-dom'
 
 export const ScheduleView = () => {
@@ -8,7 +8,7 @@ export const ScheduleView = () => {
 
     return (
     <div id="schedule">
-
+      <Link to="/">Back</Link>
     <div>
       <h1>
         Schedule: {schedule.name}<br/>
