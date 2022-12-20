@@ -19,21 +19,19 @@ const get_schedules = () => {
 
 const get_schedule = ({ params }) => {
   console.log(params)
-  return api.getSchedule(params.name, params.project_stack)
+  return api.getSchedule(params.schedule_id)
 }
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <ScheduleTable api={api}/>,
-    errorElement: <ErrorPage />,
-    loader: get_schedules
+    errorElement: <ErrorPage />
   },
   {
-    path: "/schedule/:name/:project_stack",
-    element: <ScheduleView />,
-    errorElement: <ErrorPage />,
-    loader: get_schedule
+    path: "/schedule/:schedule_id",
+    element: <ScheduleView api={api}/>,
+    errorElement: <ErrorPage />
   }
 ]);
 

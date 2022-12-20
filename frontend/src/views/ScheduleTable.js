@@ -14,11 +14,9 @@ const cleanData = (dicts) => {
   return dicts
 }
 
-export const ScheduleTable = (params) => {
+export const ScheduleTable = ({ api }) => {
 
-  const { data } = useLoaderData();
-
-  const init_columns = [
+  const columns = [
     {
       title: "Name",
       field: "name",
@@ -57,13 +55,12 @@ export const ScheduleTable = (params) => {
     }
   ]
 
-  const [rows, setRows] = useState(cleanData(data))
-  const [columns, setColumns] = useState(init_columns)
+  const [rows, setRows] = useState([{}])
 
   useEffect(() => {
     const getData = async () => {
-      const new_data = await params.api.getSchedules()
-      setRows(cleanData(new_data.data))
+      const new_data = await api.getSchedules()
+      setRows(cleanData(new_data))
     }
     getData()
   }, []
@@ -79,8 +76,8 @@ return (
     columns={columns} 
     actions={[
       rowData => ({
-        icon: () => <Link to={`/schedule/${rowData.name}/${rowData.project_stack}`}>View</Link>,
-        tooltip: 'Edit ',
+        icon: () => <Link to={`/schedule/${rowData.schedule_id}`}>View</Link>,
+        tooltip: 'View Details',
         onClick: (rowData)
       })
     ]}/>

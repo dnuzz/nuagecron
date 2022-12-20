@@ -4,6 +4,7 @@ from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
 from nuagecron.core.functions.tick import main as tick_main
+from nuagecron import SERVICE_NAME
 
 
 app = Flask(__name__, static_url_path="", static_folder="../frontend/build")
@@ -23,23 +24,46 @@ def get_schedules():
     return jsonify([s.dict() for s in schedules])
 
 
-@app.route("/schedule/<string:name>/<string:project_stack>")
-def get_schedule(name: str, project_stack: str = None):
-    schedule = SCHEDULE_HANDLER.get_schedule(name, project_stack)
+@app.route("/schedule/<string:schedule_id>")
+def get_schedule(schedule_id: str,):
+    schedule = SCHEDULE_HANDLER.get_schedule_by_id(schedule_id)
 
     if not schedule:
         return (
             jsonify(
                 {
                     "error": "No schedule found",
-                    "name": name,
-                    "project_stack": project_stack,
+                    "schedule_id": schedule_id
                 }
             ),
             404,
         )
     return jsonify(schedule.dict())
 
+@app.route("/schedule/<string:schedule_id>/invoke")
+def invoke_schedule(schedule_id: str,):
+    schedule = SCHEDULE_HANDLER.get_schedule_by_id(schedule_id)
+
+    if not schedule:
+        return (
+            jsonify(
+                {
+                    "error": "No schedule found",
+                    "schedule_id": schedule_id
+                }
+            ),
+            404,
+        )
+    execution = EXECUTION_HANDLER.create_execution(schedule.name, schedule.project_stack)
+    COMPUTE_ADAPTER.invoke_function(
+                    f"{SERVICE_NAME}-executor",
+                    {
+                        "schedule_id": schedule.schedule_id,
+                        "execution_time": execution.execution_time,
+                    },
+                    sync=False,
+                )
+    return jsonify(execution.dict())
 
 @app.route("/schedules/create", methods=["PUT"])
 def create_schedule():
