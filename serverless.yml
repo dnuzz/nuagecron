@@ -50,10 +50,10 @@ functions:
     handler: api.wsgi_handler.handler
     events:
       - http:
-          path: /
+          path: /api/{proxy+}
           method: ANY
       - http:
-          path: /{proxy+}
+          path: /
           method: ANY
   tick:
     name: ${self:custom.servicename}-tick

@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import ErrorPage from './views/ErrorPage'
 
-export const api = new NuagecronApi('http://localhost:5000')
+export const api = new NuagecronApi('api')
 const defaultMaterialTheme = createTheme();
 
 const get_schedules = () => {

@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from typing import List, Optional, Tuple
 
@@ -14,12 +15,16 @@ from nuagecron.core.models.schedules import Schedule
 
 def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
     def add_update_param(attr: dict):
-        for k, v in attr.items():
-            if isinstance(v, dict):
-                if v.__len__() == 1 and list(v.keys())[0].__len__() == 1:
-                    v["Action"] = "PUT"
-                else:
-                    add_update_param(v)
+        for k in attr.keys():
+            primary_key = list(attr[k].keys())[0]
+            new_val = {"Value": None, "Action": "PUT"}
+            n_v = {
+                primary_key: add_update_param(attr[k][primary_key])
+                if primary_key == "M"
+                else attr[k][primary_key]
+            }
+            new_val["Value"] = n_v
+            attr[k] = new_val
 
     ret_val: dict = json_util.dumps(a_dict, as_dict=True)
     if as_update:
@@ -29,7 +34,7 @@ def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
 
 
 def model_to_dynamo(model: BaseModel):
-    model_as_dict = model.dict()
+    model_as_dict = model.dict(exclude_none=True)
     if isinstance(model, Schedule):
         if model_as_dict["enabled"]:
             model_as_dict["enabled"] = "TRUE"
@@ -63,8 +68,11 @@ class DynamoDbAdapter(BaseDBAdapter):
         response = self.dynamodb_client.query(
             TableName=SCHEDULE_TABLE_NAME,
             IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
-            KeyConditionExpression="enabled = :T",
-            ExpressionAttributeValues={":T": {"S": "TRUE"}},
+            KeyConditionExpression="enabled = :T AND next_run < :CT",
+            ExpressionAttributeValues={
+                ":T": {"S": "TRUE"},
+                ":CT": {"N": str(int(datetime.utcnow().timestamp()))},
+            },
             Limit=count,
             ScanIndexForward=False,
         )
@@ -76,7 +84,10 @@ class DynamoDbAdapter(BaseDBAdapter):
                 TableName=SCHEDULE_TABLE_NAME,
                 IndexName=f"{SCHEDULE_TABLE_NAME}-enabled",
                 KeyConditionExpression="enabled = :T",
-                ExpressionAttributeValues={":T": {"S": "TRUE"}},
+                ExpressionAttributeValues={
+                    ":T": {"S": "TRUE"},
+                    ":CT": {"N": str(int(datetime.utcnow().timestamp()))},
+                },
                 Limit=count,
                 ScanIndexForward=False,
                 ExclusiveStartKey=response["LastEvaluatedKey"],

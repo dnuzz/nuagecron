@@ -12,7 +12,7 @@ compute_adapter = AWSComputeAdapter()
 
 def executor_lambda_handler(payload: Any, context: Any):
     schedule_id: str = payload["schedule_id"]
-    execution_time: int = payload["execution_time"]
+    execution_time: int = int(payload["execution_time"])
     executor_main(db_adapter, schedule_id, execution_time)
 
 

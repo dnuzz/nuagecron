@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, make_response, request, send_from_directory
+from flask import Flask, jsonify, make_response, request, send_from_directory, Blueprint
 from flask_cors import CORS
 from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
@@ -16,63 +16,63 @@ COMPUTE_ADAPTER = AWSComputeAdapter()
 SCHEDULE_HANDLER = ScheduleHandler(DB_ADAPTER, COMPUTE_ADAPTER)
 EXECUTION_HANDLER = ExecutionHandler(DB_ADAPTER, COMPUTE_ADAPTER)
 
+api = Blueprint("api", __name__)
 
-@app.route("/schedules")
+
+@api.route("/schedules")
 def get_schedules():
     schedules, _ = SCHEDULE_HANDLER.get_all_schedules(request.args.get("start_key"))
 
     return jsonify([s.dict() for s in schedules])
 
 
-@app.route("/schedule/<string:schedule_id>")
-def get_schedule(schedule_id: str,):
+@api.route("/schedule/<string:schedule_id>")
+def get_schedule(
+    schedule_id: str,
+):
     schedule = SCHEDULE_HANDLER.get_schedule_by_id(schedule_id)
 
     if not schedule:
         return (
-            jsonify(
-                {
-                    "error": "No schedule found",
-                    "schedule_id": schedule_id
-                }
-            ),
+            jsonify({"error": "No schedule found", "schedule_id": schedule_id}),
             404,
         )
     return jsonify(schedule.dict())
 
-@app.route("/schedule/<string:schedule_id>/invoke")
-def invoke_schedule(schedule_id: str,):
+
+@api.route("/schedule/<string:schedule_id>/invoke")
+def invoke_schedule(
+    schedule_id: str,
+):
     schedule = SCHEDULE_HANDLER.get_schedule_by_id(schedule_id)
 
     if not schedule:
         return (
-            jsonify(
-                {
-                    "error": "No schedule found",
-                    "schedule_id": schedule_id
-                }
-            ),
+            jsonify({"error": "No schedule found", "schedule_id": schedule_id}),
             404,
         )
-    execution = EXECUTION_HANDLER.create_execution(schedule.name, schedule.project_stack)
+    execution = EXECUTION_HANDLER.create_execution(
+        schedule.name, schedule.project_stack
+    )
     COMPUTE_ADAPTER.invoke_function(
-                    f"{SERVICE_NAME}-executor",
-                    {
-                        "schedule_id": schedule.schedule_id,
-                        "execution_time": execution.execution_time,
-                    },
-                    sync=False,
-                )
+        f"{SERVICE_NAME}-executor",
+        {
+            "schedule_id": schedule.schedule_id,
+            "execution_time": execution.execution_time,
+        },
+        sync=False,
+    )
     return jsonify(execution.dict())
 
-@app.route("/schedules/create", methods=["PUT"])
+
+@api.route("/schedules/create", methods=["PUT"])
 def create_schedule():
     schedule = SCHEDULE_HANDLER.create_schedule(request.json)
 
     return jsonify(schedule.dict())
 
 
-@app.route("/schedules/<string:project_stack>", methods=["GET"])
+@api.route("/schedules/<string:project_stack>", methods=["GET"])
 def get_stack_schedules(project_stack: str = None):
     if project_stack:
         retval = DB_ADAPTER.get_schedule_set(project_stack)
@@ -88,19 +88,19 @@ def get_stack_schedules(project_stack: str = None):
         return jsonify(DB_ADAPTER.get_schedules(start_key))
 
 
-@app.route("/executions/<string:schedule_id>", methods=["get"])
+@api.route("/executions/<string:schedule_id>", methods=["get"])
 def get_executions(schedule_id: str):
     executions = DB_ADAPTER.get_executions(schedule_id)
-    return jsonify(executions)
+    return jsonify([e.dict() for e in executions[0]])
 
 
-@app.route("/executions/<string:schedule_id>/<int:execution_time>", methods=["get"])
+@api.route("/executions/<string:schedule_id>/<int:execution_time>", methods=["get"])
 def get_execution(schedule_id: str, execution_time: int):
     execution = DB_ADAPTER.get_execution(schedule_id, execution_time)
     return jsonify(execution)
 
 
-@app.route("/tick", methods=["post"])
+@api.route("/tick", methods=["post"])
 def run_tick():
     tick_main(COMPUTE_ADAPTER, DB_ADAPTER)
     return make_response({}, 202)
@@ -109,6 +109,9 @@ def run_tick():
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error="Not found!"), 404)
+
+
+app.register_blueprint(api, url_prefix="/api")
 
 
 @app.route("/", defaults={"path": ""})

@@ -13,7 +13,7 @@ const cleanData = (dicts) => {
   return dicts
 }
 
-export const ExecutionsTable = (params) => {
+export const ExecutionsTable = ({api , schedule_id }) => {
 
 
   const columns = [
@@ -47,7 +47,7 @@ export const ExecutionsTable = (params) => {
 
   useEffect(() => {
     const getData = async () => {
-      const new_data = await params.api.getExecutions(params.schedule_id)
+      const new_data = await api.getExecutions(schedule_id)
       setRows(cleanData(new_data.data))
     }
     getData()
