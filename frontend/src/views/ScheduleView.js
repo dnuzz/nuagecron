@@ -41,14 +41,14 @@ export const ScheduleView = ({ api }) => {
       </div>
 
       <div>
-        <Form action="Invoke">
+        <Form action="Invoke" method="post">
           <button type="submit">Invoke</button>
         </Form>
         <Form
           method="post"
           action="Reset"
         >
-          <button type="submit">Reset</button>
+          <button action="revoke" type="submit">Reset</button>
         </Form>
       </div>
       <ExecutionsTable api={api} schedule_id={scheduleData.schedule_id} />

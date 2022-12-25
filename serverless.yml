@@ -3,6 +3,9 @@ service: nuagecron
 frameworkVersion: '2 || 3'
 
 custom:
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+  websiteBucket: ${env:WEBSITE_BUCKET}
   servicename: ${file(./servicename.json):servicename} 
   pythonRequirements:
     dockerizePip: true
@@ -18,7 +21,7 @@ package:
     - frontend/**
   include:
     - servicename.json
-    - frontend/build/**
+    - frontend/build/index.html
 
 provider:
   name: aws
@@ -41,16 +44,22 @@ provider:
             - Fn::Join: [ '/', ['Fn::GetAtt': [ SchedulesTable, Arn ], 'index', '*']]
             - Fn::GetAtt: [ ExecutionsTable, Arn ]
             - Fn::Join: [ '/', ['Fn::GetAtt': [ ExecutionsTable, Arn ], 'index', '*']]
+        - Effect: Allow
+          Action:
+            - lambda:*
+          Resource:
+            - "*"
   environment:
     SCHEDULES_TABLE: ${self:custom.servicename}-schedules
     EXECUTIONS_TABLE: ${self:custom.servicename}-executions
 
 functions:
   api:
+    name: ${self:custom.servicename}-api-handler
     handler: api.wsgi_handler.handler
     events:
       - http:
-          path: /api/{proxy+}
+          path: /{proxy+}
           method: ANY
       - http:
           path: /
@@ -129,3 +138,49 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: 'KEYS_ONLY'
+    WebsiteBucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+          BucketName: '${self:custom.websiteBucket}'
+          AccessControl: 'PublicRead'
+          WebsiteConfiguration:
+            IndexDocument: 'index.html'
+            ErrorDocument: 'index.html'
+    WebsiteDistribution:
+      Type: 'AWS::CloudFront::Distribution'
+      Properties:
+          DistributionConfig:
+            DefaultCacheBehavior:
+                TargetOriginId: 'WebsiteBucketOrigin'
+                ViewerProtocolPolicy: 'redirect-to-https'
+                DefaultTTL: 600 # ten minutes
+                MaxTTL: 600 # ten minutes
+                Compress: true
+                ForwardedValues:
+                  QueryString: false
+                  Cookies:
+                      Forward: 'none'
+            CacheBehaviors:
+                - TargetOriginId: 'ApiGatewayOrigin'
+                  ViewerProtocolPolicy: 'redirect-to-https'
+                  Compress: true
+                  PathPattern: /api*
+                  ForwardedValues:
+                    QueryString: true
+                    Cookies:
+                        Forward: 'none'
+            DefaultRootObject: 'index.html'
+            Enabled: true
+            PriceClass: 'PriceClass_100'
+            HttpVersion: 'http2'
+            ViewerCertificate:
+                CloudFrontDefaultCertificate: true
+            Origins:
+                - Id: 'WebsiteBucketOrigin'
+                  DomainName: { 'Fn::GetAtt': [ 'WebsiteBucket', 'DomainName' ] }
+                  S3OriginConfig: {}
+                - Id: 'ApiGatewayOrigin'
+                  DomainName: { "Fn::Join" : ["", [{ "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:custom.region}.amazonaws.com" ] ]  }
+                  OriginPath: '/${self:custom.stage}'
+                  CustomOriginConfig:
+                    OriginProtocolPolicy: match-viewer

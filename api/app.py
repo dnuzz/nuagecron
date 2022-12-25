@@ -40,7 +40,7 @@ def get_schedule(
     return jsonify(schedule.dict())
 
 
-@api.route("/schedule/<string:schedule_id>/invoke")
+@api.route("/schedule/<string:schedule_id>/invoke", methods=['POST'])
 def invoke_schedule(
     schedule_id: str,
 ):
@@ -88,7 +88,7 @@ def get_stack_schedules(project_stack: str = None):
         return jsonify(DB_ADAPTER.get_schedules(start_key))
 
 
-@api.route("/executions/<string:schedule_id>", methods=["get"])
+@api.route("/executions/<string:schedule_id>", methods=["GET"])
 def get_executions(schedule_id: str):
     executions = DB_ADAPTER.get_executions(schedule_id)
     return jsonify([e.dict() for e in executions[0]])
