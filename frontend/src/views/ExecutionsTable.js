@@ -48,7 +48,7 @@ export const ExecutionsTable = ({api , schedule_id }) => {
   useEffect(() => {
     const getData = async () => {
       const new_data = await api.getExecutions(schedule_id)
-      setRows(cleanData(new_data.data))
+      setRows(cleanData(new_data))
     }
     getData()
   }, []
@@ -60,7 +60,7 @@ export const ExecutionsTable = ({api , schedule_id }) => {
 return (
   <MaterialTable 
     title="Executions" 
-    data={JSON.parse(JSON.stringify(rows))} 
+    data={rows} 
     columns={columns} 
     />
 );
