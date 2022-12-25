@@ -10,17 +10,8 @@ import {
 } from "react-router-dom";
 import ErrorPage from './views/ErrorPage'
 
-export const api = new NuagecronApi('api')
+export const api = new NuagecronApi('/api')
 const defaultMaterialTheme = createTheme();
-
-const get_schedules = () => {
-  return api.getSchedules()
-}
-
-const get_schedule = ({ params }) => {
-  console.log(params)
-  return api.getSchedule(params.schedule_id)
-}
 
 const router = createBrowserRouter([
   {

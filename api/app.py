@@ -7,7 +7,7 @@ from nuagecron.core.functions.tick import main as tick_main
 from nuagecron import SERVICE_NAME
 
 
-app = Flask(__name__, static_url_path="", static_folder="../frontend/build")
+app = Flask(__name__, static_folder="../frontend/build")
 CORS(app)
 
 DB_ADAPTER = DynamoDbAdapter()
@@ -40,7 +40,7 @@ def get_schedule(
     return jsonify(schedule.dict())
 
 
-@api.route("/schedule/<string:schedule_id>/invoke", methods=['POST'])
+@api.route("/schedule/<string:schedule_id>/invoke", methods=["POST"])
 def invoke_schedule(
     schedule_id: str,
 ):
@@ -106,14 +106,10 @@ def run_tick():
     return make_response({}, 202)
 
 
-@app.errorhandler(404)
-def resource_not_found(e):
-    return make_response(jsonify(error="Not found!"), 404)
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def catch_all(path):
+    return send_from_directory(app.static_folder, "index.html")
 
 
 app.register_blueprint(api, url_prefix="/api")
-
-
-@app.route("/", defaults={"path": ""})
-def serve(path):
-    return send_from_directory(app.static_folder, "index.html")
