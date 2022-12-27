@@ -60,12 +60,4 @@ class ExecutionHandler:
         schedule_as_dict["status"] = ExecutionStatus.ready
         new_execution = Execution(**schedule_as_dict)
         self.db_adapter.put_execution(new_execution)
-        self.compute_adapter.invoke_function(
-            f"{SERVICE_NAME}-executor",
-            {
-                "schedule_id": schedule_id,
-                "execution_time": schedule_as_dict["execution_time"],
-            },
-            sync=False,
-        )
         return new_execution

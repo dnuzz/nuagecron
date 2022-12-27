@@ -4,6 +4,7 @@ from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
 from nuagecron.core.functions.tick import main as tick_main
+from nuagecron.core.functions.executor import main as executor_main
 from nuagecron import SERVICE_NAME
 
 
@@ -54,14 +55,17 @@ def invoke_schedule(
     execution = EXECUTION_HANDLER.create_execution(
         schedule.name, schedule.project_stack
     )
-    COMPUTE_ADAPTER.invoke_function(
-        f"{SERVICE_NAME}-executor",
-        {
-            "schedule_id": schedule.schedule_id,
-            "execution_time": execution.execution_time,
-        },
-        sync=False,
-    )
+    if request.args.get("sync"):
+        executor_main(DB_ADAPTER, schedule.schedule_id, execution.execution_time)
+    else:
+        COMPUTE_ADAPTER.invoke_function(
+            f"{SERVICE_NAME}-executor",
+            {
+                "schedule_id": schedule.schedule_id,
+                "execution_time": execution.execution_time,
+            },
+            sync=False,
+        )
     return jsonify(execution.dict())
 
 

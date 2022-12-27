@@ -14,7 +14,7 @@ def main(db_adapter: BaseDBAdapter, schedule_id: str, execution_time: int):
     except:
         status = ExecutionStatus.internal_error
     execution_id, status = executor.execute()
-    schedule.upsert_execution_history(schedule.next_run, ExecutionStatus.ready)
+    schedule.upsert_execution_history(schedule.next_run, status)
     db_adapter.update_schedule(
         schedule_id, {"execution_history": schedule.execution_history}
     )

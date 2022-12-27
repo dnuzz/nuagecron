@@ -39,7 +39,7 @@ def test_execution_handler():
     execution = handler.create_execution(
         TEST_SCHEDULE["name"], TEST_SCHEDULE["project_stack"]
     )
-    assert execution.status == ExecutionStatus.running
+    assert execution.status == ExecutionStatus.ready
     executions = handler.list_executions(
         TEST_SCHEDULE["name"], TEST_SCHEDULE["project_stack"]
     )
