@@ -9,5 +9,5 @@ def test_update():
     assert "M" in update_dict["execution_status"]["Value"]
     assert update_dict["execution_status"]["Value"]["M"]
     assert (
-        update_dict["execution_status"]["Value"]["M"]["12345"]["Value"]["S"] == "ready"
+        update_dict["execution_status"]["Value"]["M"]["12345"]["S"] == "ready"
     )

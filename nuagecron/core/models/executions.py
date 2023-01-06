@@ -24,8 +24,8 @@ class Execution(BaseModel):
     execution_time: int
     payload: dict
     executor: str
-    invoke_time: Optional[datetime]
-    update_time: Optional[datetime]
+    invoke_time: Optional[datetime] = datetime.utcnow()
+    update_time: Optional[datetime] = datetime.utcnow()
     execution_id: Optional[str]
     status: ExecutionStatus
     log_link: Optional[str]

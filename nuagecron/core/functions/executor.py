@@ -20,7 +20,9 @@ def main(db_adapter: BaseDBAdapter, schedule_id: str, execution_time: int):
     )
     execution.execution_id = execution_id
     execution.status = status
+    update_statement = {"status": status}
+    if execution_id:
+        update_statement["execution_id"] = execution_id
     db_adapter.update_execution(
-        schedule_id, execution_time, {"execution_id": execution_id, "status": status}
+        schedule_id, execution_time, update_statement
     )
-    # TODO update the exection_history in the schedule object

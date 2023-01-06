@@ -18,8 +18,8 @@ def dictionary_to_dynamo(a_dict: dict, as_update=False) -> dict:
         for k in attr.keys():
             primary_key = list(attr[k].keys())[0]
             new_val = {"Value": {primary_key: None}, "Action": "PUT"}
-            if primary_key == "M":
-                add_update_param(attr[k][primary_key])
+            #if primary_key == "M":
+            #    add_update_param(attr[k][primary_key])
             new_val["Value"][primary_key] = attr[k][primary_key]
             attr[k] = new_val
 
@@ -215,7 +215,7 @@ class DynamoDbAdapter(BaseDBAdapter):
             TableName=EXECUTION_TABLE_NAME,
             Key={
                 "schedule_id": {"S": schedule_id},
-                "execution_id": {"N": str(execution_time)},
+                "execution_time": {"N": str(execution_time)},
             },
             AttributeUpdates=dictionary_to_dynamo(update, as_update=True),
         )
