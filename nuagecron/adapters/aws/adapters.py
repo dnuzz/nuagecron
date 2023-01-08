@@ -188,7 +188,7 @@ class DynamoDbAdapter(BaseDBAdapter):
             Limit=count,
             KeyConditionExpression="schedule_id = :V",
             ExpressionAttributeValues={":V": {"S": schedule_id}},
-            ScanIndexForward=True,
+            ScanIndexForward=False,
             **addl_kwargs,
         )
         ret_val = [Execution(**dynamo_to_dict(item)) for item in response["Items"]]
@@ -200,7 +200,7 @@ class DynamoDbAdapter(BaseDBAdapter):
                 Limit=count,
                 KeyConditionExpression="schedule_id = :V",
                 ExpressionAttributeValues={":V": {"S": schedule_id}},
-                ScanIndexForward=True,
+                ScanIndexForward=False,
                 ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             ret_val.extend(
