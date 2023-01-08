@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { Form, Link } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
 import { ExecutionsTable } from './ExecutionsTable'
+import { Button } from '@mui/material'
 
 const cleanData = (a_dict) => {
     for (const [key, value] of Object.entries(a_dict)){
@@ -30,7 +31,7 @@ export const ScheduleView = ({ api }) => {
 
     return (
     <div id="schedule">
-      <Link to="/">Back</Link>
+      <Link to="/"><Button>Back</Button></Link>
     <div>
       <h1>
         Schedule: {scheduleData.name}<br/>
@@ -42,13 +43,13 @@ export const ScheduleView = ({ api }) => {
 
       <div>
         <Form action="Invoke" method="post">
-          <button type="submit">Invoke</button>
+          <Button type="submit">Invoke</Button>
         </Form>
         <Form
           method="post"
           action="Reset"
         >
-          <button action="revoke" type="submit">Reset</button>
+          <Button type="submit">Reset</Button>
         </Form>
       </div>
       <ExecutionsTable api={api} schedule_id={scheduleData.schedule_id} />
