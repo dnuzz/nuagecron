@@ -8,3 +8,8 @@ dist/*
 yarn-error.log
 *.env*
 *_cache
+.terraform
+*/.terraform.lock.hcl
+terraform/builds
+**/*.tfbackend
+requirements.txt
