@@ -8,6 +8,20 @@ def test_update():
     )
     assert "M" in update_dict["execution_status"]["Value"]
     assert update_dict["execution_status"]["Value"]["M"]
-    assert (
-        update_dict["execution_status"]["Value"]["M"]["12345"]["S"] == "ready"
+    assert update_dict["execution_status"]["Value"]["M"]["12345"]["S"] == "ready"
+
+
+def test_update_multi():
+    update_dict = dictionary_to_dynamo(
+        {
+            "execution_status": {
+                12345: ExecutionStatus.ready,
+                54321: ExecutionStatus.failed,
+            }
+        },
+        True,
     )
+    assert "M" in update_dict["execution_status"]["Value"]
+    assert update_dict["execution_status"]["Value"]["M"]
+    assert update_dict["execution_status"]["Value"]["M"]["12345"]["S"] == "ready"
+    assert update_dict["execution_status"]["Value"]["M"]["54321"]["S"] == "failed"

@@ -23,6 +23,4 @@ def main(db_adapter: BaseDBAdapter, schedule_id: str, execution_time: int):
     update_statement = {"status": status}
     if execution_id:
         update_statement["execution_id"] = execution_id
-    db_adapter.update_execution(
-        schedule_id, execution_time, update_statement
-    )
+    db_adapter.update_execution(schedule_id, execution_time, update_statement)
