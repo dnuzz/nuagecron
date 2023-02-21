@@ -11,7 +11,7 @@ export default function ErrorPage() {
         <p>Sorry, an unexpected error has occurred.</p>
         <p>
           <i>{error.statusText}</i>
-          <i>{error.message}</i>
+          <b>{error.message}</b>
           <p>Chaos Stacktrace below</p>
           <i>{error.stack}</i>
         </p>
