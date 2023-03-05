@@ -1,3 +1,4 @@
+from typing import Union
 from flask import (
     Flask,
     jsonify,
@@ -10,6 +11,7 @@ from flask import (
 import os
 from flask_cors import CORS
 import requests
+from yaml import safe_load
 from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
@@ -80,15 +82,35 @@ def invoke_schedule(
         )
     return jsonify(execution.dict())
 
+def check_content_for_request(request) -> Union[dict, tuple]:
+    if request.content_type.lower() == 'application/json':
+        payload = request.json()
+    elif request.content_type.lower() == 'text/plain':
+        payload = safe_load(request.stream)
+    else:
+        return (jsonify({"error": "Content-type must be application/json (for json document) or text/plain (If using a yaml document)"}), 406)
+    return payload
 
 @api.route("/schedules/create", methods=["PUT"])
 def create_schedule():
-    schedule = SCHEDULE_HANDLER.create_schedule(request.json)
+    payload = check_content_for_request(request)
+    if isinstance(payload, tuple):
+        return payload
+
+    schedule = SCHEDULE_HANDLER.create_schedule(payload)
 
     return jsonify(schedule.dict())
 
+@api.route("/schedule_set/create", methods=["PUT"])
+def create_schedule_set():
+    payload = check_content_for_request(request)
+    if isinstance(payload, tuple):
+        return payload
+    schedule = SCHEDULE_HANDLER.upsert_schedule_set(payload)
+    return jsonify(schedule.dict())
 
-@api.route("/schedules/<string:project_stack>", methods=["GET"])
+
+@api.route("/schedule_set/<string:project_stack>", methods=["GET"])
 def get_stack_schedules(project_stack: str = None):
     if project_stack:
         retval = DB_ADAPTER.get_schedule_set(project_stack)

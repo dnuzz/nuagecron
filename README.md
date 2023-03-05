@@ -24,7 +24,8 @@ You will need a few things to install this:
 ## Deployment
 
 ### AWS
-As of right now only AWS deployments are supported. In the future we will try to support multiple cloud providers and Kubernetes but we want to walk before we try to run here.
+As of right now only AWS deployments are supported. In the future we will try to support multiple cloud providers and Kubernetes but we want to walk before we try to run here. At some point I will try to transition this to Terraform to help abstract some of this away.
+
 * Set up your local AWS developer credentials
 * Run `./deploy.sh` (this should install things but serverless currently has an issue with spinning up multiple GSIs on Dynamo tables)
 

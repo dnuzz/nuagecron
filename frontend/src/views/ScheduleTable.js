@@ -1,7 +1,10 @@
+import { Button } from "@mui/material";
 import MaterialTable from "material-table";
 import React, { useState, useEffect } from 'react'
 import { Link } from "react-router-dom";
 import { useLoaderData } from "react-router-dom";
+import Modal from "@mui/material";
+import CreateScheduleModal from "../components/CreateScheduleModal";
 
 const cleanData = (dicts) => {
   for (const a_dict of dicts) {
@@ -13,6 +16,8 @@ const cleanData = (dicts) => {
   }
   return dicts
 }
+
+
 
 export const ScheduleTable = ({ api }) => {
 
@@ -70,6 +75,8 @@ export const ScheduleTable = ({ api }) => {
 
   
 return (
+  <div>
+    <CreateScheduleModal api={api}/>
   <MaterialTable 
     title="Schedules" 
     data={JSON.parse(JSON.stringify(rows))} 
@@ -81,5 +88,6 @@ return (
         onClick: (rowData)
       })
     ]}/>
+    </div>
 );
 };
