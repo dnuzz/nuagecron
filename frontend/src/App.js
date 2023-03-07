@@ -15,7 +15,7 @@ import ErrorPage from './views/ErrorPage'
 import Profile from './components/Profile';
 import { OAuthProviderWithNavigate } from './Authentication';
 import { AuthContext } from 'react-oauth2-code-pkce'
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 
 export const api = new NuagecronApi('/api')
 const defaultMaterialTheme = createTheme({
