@@ -1,4 +1,9 @@
-from nuagecron.adapters.aws.adapters import dictionary_to_dynamo
+from moto import mock_lambda, mock_dynamodb
+
+with mock_dynamodb():
+    with mock_lambda():
+        # This is here because a call chain instantiates a boto client
+        from nuagecron.adapters.aws.adapters import dictionary_to_dynamo
 from nuagecron.core.models.executions import ExecutionStatus
 
 
