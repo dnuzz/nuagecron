@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@auth0/auth0-react": "^1.12.0",
     "@emotion/react": "^11.10.5",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
@@ -22,6 +21,7 @@
     "react-data-table-component": "^7.5.3",
     "react-dom": "^18.2.0",
     "react-double-scrollbar": "^0.0.15",
+    "react-oauth2-code-pkce": "^1.10.3",
     "react-router-dom": "^6.4.5",
     "react-scripts": "5.0.1",
     "sort-by": "^1.2.0",
@@ -31,7 +31,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "yarn run eslint . --fix"
   },
   "eslintConfig": {
     "extends": [
@@ -51,5 +52,9 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5000",
+  "devDependencies": {
+    "eslint": "^8.35.0",
+    "eslint-plugin-react": "^7.32.2"
+  }
 }

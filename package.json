@@ -8,15 +8,18 @@
     "frontend"
   ],
   "devDependencies": {
+    "eslint": "^8.35.0",
+    "eslint-plugin-react": "^7.32.2",
     "serverless": "^2.69.1",
     "serverless-python-requirements": "^4.3.0",
     "serverless-wsgi": "^3.0.1"
   },
   "scripts": {
-    "start": "yarn --cwd frontend start",
-    "build": "yarn --cwd frontend build",
-    "test": "yarn --cwd frontend test",
-    "eject": "yarn --cwd frontend eject",
-    "start-flask": "export FLASK_APP='api/app.py' && export FLASK_ENV=development && poetry run flask run --no-debugger"
+    "start": "yarn workspace frontend react-scripts start",
+    "build": "yarn workspace frontend react-scripts build",
+    "test": "yarn workspace frontend react-scripts test",
+    "eject": "yarn workspace frontend react-scripts eject",
+    "start-flask": "export FLASK_APP='api/app.py' && export FLASK_ENV=development && poetry run flask run --no-debugger",
+    "lint": "yarn workspace frontend run eslint . --fix"
   }
 }

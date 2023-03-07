@@ -1,19 +1,20 @@
-import React from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import React, { useContext} from "react";
+import { AuthContext } from "react-oauth2-code-pkce";
 
 const Profile = () => {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { token, idTokenData, loginInProgress } = useContext(AuthContext)
 
-  if (isLoading) {
+  if (loginInProgress) {
     return <div>Loading ...</div>;
   }
 
   return (
-    isAuthenticated && (
+    token.length > 0 && (
       <div>
-        <img src={user.picture} alt={user.name} />
-        <h2>{user.name}</h2>
-        <p>{user.email}</p>
+        <img src={idTokenData?.picture} alt={idTokenData?.name} />
+        <h2>{idTokenData?.name}</h2>
+        <p>{idTokenData?.email}</p>
+        <p>{JSON.stringify(idTokenData, null, 2)}</p>
       </div>
     )
   );

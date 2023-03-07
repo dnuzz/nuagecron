@@ -1,14 +1,28 @@
-from flask import Flask, jsonify, make_response, request, send_from_directory, Blueprint
+from typing import Union
+from flask import (
+    Flask,
+    jsonify,
+    make_response,
+    request,
+    send_from_directory,
+    Blueprint,
+    url_for,
+)
+import os
 from flask_cors import CORS
+import requests
+from yaml import safe_load
 from nuagecron.adapters.aws.adapters import AWSComputeAdapter, DynamoDbAdapter
 from nuagecron.core.handlers.executions import ExecutionHandler
 from nuagecron.core.handlers.schedules import ScheduleHandler
 from nuagecron.core.functions.tick import main as tick_main
 from nuagecron.core.functions.executor import main as executor_main
 from nuagecron import SERVICE_NAME
+from dotenv import load_dotenv
 
-
+load_dotenv()
 app = Flask(__name__, static_folder="../frontend/build")
+app.secret_key = "abc"
 CORS(app)
 
 DB_ADAPTER = DynamoDbAdapter()
@@ -68,15 +82,35 @@ def invoke_schedule(
         )
     return jsonify(execution.dict())
 
+def check_content_for_request(request) -> Union[dict, tuple]:
+    if request.content_type.lower() == 'application/json':
+        payload = request.json()
+    elif request.content_type.lower() == 'text/plain':
+        payload = safe_load(request.stream)
+    else:
+        return (jsonify({"error": "Content-type must be application/json (for json document) or text/plain (If using a yaml document)"}), 406)
+    return payload
 
 @api.route("/schedules/create", methods=["PUT"])
 def create_schedule():
-    schedule = SCHEDULE_HANDLER.create_schedule(request.json)
+    payload = check_content_for_request(request)
+    if isinstance(payload, tuple):
+        return payload
+
+    schedule = SCHEDULE_HANDLER.create_schedule(payload)
 
     return jsonify(schedule.dict())
 
+@api.route("/schedule_set/create", methods=["PUT"])
+def create_schedule_set():
+    payload = check_content_for_request(request)
+    if isinstance(payload, tuple):
+        return payload
+    schedule = SCHEDULE_HANDLER.upsert_schedule_set(payload)
+    return jsonify(schedule.dict())
 
-@api.route("/schedules/<string:project_stack>", methods=["GET"])
+
+@api.route("/schedule_set/<string:project_stack>", methods=["GET"])
 def get_stack_schedules(project_stack: str = None):
     if project_stack:
         retval = DB_ADAPTER.get_schedule_set(project_stack)
@@ -110,10 +144,36 @@ def run_tick():
     return make_response({}, 202)
 
 
+@api.route("/token", methods=["POST"])
+def get_auth_token():
+    parameters = {
+        **request.form,
+        **{
+            "client_id": os.getenv("OAUTH_CLIENT_ID"),
+            "client_secret": os.getenv("OAUTH_CLIENT_SECRET"),
+        },
+    }
+    response = requests.post(
+        os.getenv("OAUTH_DOMAIN") + os.getenv("OAUTH_TOKEN_ENDPOINT"),
+        params=parameters,
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+    )
+    response.raise_for_status()
+    # user_info = requests.get(os.getenv("OAUTH_DOMAIN") + "/oauth2/userInfo", headers={"Authorization": f"Bearer {response.json()['access_token']}", "Content-Type": "application/json"})
+    # ret_val = {**user_info.json(), **response.json()}
+    return response.json()
+
+
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def catch_all(path):
-    return send_from_directory(app.static_folder, "index.html")
+    if path != "" and os.path.exists(app.static_folder + "/" + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, "index.html")
 
 
 app.register_blueprint(api, url_prefix="/api")

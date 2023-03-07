@@ -39,6 +39,10 @@ class NuagecronApi {
         }
         return this.executions_map_map.get(schedule_id)
     }
+
+    async putSchedule(contents, format) {
+        return this.api.post()
+    }
 }
 
 export default NuagecronApi
